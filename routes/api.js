@@ -24,12 +24,12 @@ router.post('/action', async (req, res) => {
     return res.status(401).json({ success: false, error: 'Autentikasi diperlukan. Token tidak ditemukan.' });
   }
   try {
-    const [sessions] = await dbSSO.query('SELECT userId FROM sessions WHERE token = ? AND isValid = 1 AND expiresAt > NOW() LIMIT 1', [token]);
+    const [sessions] = await dbSSO.query('SELECT userId FROM Sessions WHERE token = ? AND isValid = 1 AND expiresAt > NOW() LIMIT 1', [token]);
     if (sessions.length === 0) {
       return res.status(401).json({ success: false, error: 'Sesi telah berakhir. Silakan login kembali.' });
     }
     
-    const [users] = await dbSSO.query('SELECT userId, username, fullName, role, status FROM users WHERE userId = ? LIMIT 1', [sessions[0].userId]);
+    const [users] = await dbSSO.query('SELECT userId, username, fullName, role, status FROM Users WHERE userId = ? LIMIT 1', [sessions[0].userId]);
     if (users.length === 0 || users[0].status !== 'ACTIVE') {
       return res.status(401).json({ success: false, error: 'Akun Anda tidak aktif atau tidak valid.' });
     }
