@@ -4,10 +4,10 @@ exports.getSemuaKegiatan = async (req, res) => {
     try {
         const query = `
             SELECT m.*, 
-                   (SELECT COUNT(DISTINCT nama_peserta) 
-                    FROM evaluasi_respons r 
-                    WHERE r.nama_kegiatan = m.nama_kegiatan) AS totalRes 
+                   COUNT(DISTINCT r.nama_peserta) AS totalRes 
             FROM kegiatan_meta m 
+            LEFT JOIN evaluasi_respons r ON m.nama_kegiatan = r.nama_kegiatan
+            GROUP BY m.nama_kegiatan
             ORDER BY m.updated_at DESC
         `;
         const [rows] = await db.query(query);

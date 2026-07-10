@@ -21,7 +21,7 @@ if %errorlevel% neq 0 (echo GAGAL mengunggah! & exit /b 1)
 
 echo.
 echo [3/4] Mengeksekusi di server: extract, install deps, start PM2...
-ssh -i "%SSH_KEY%" %SSH_OPTS% %REMOTE% "cd /home/opc/Evaluasi-Kegiatan && tar -xzvf evaluasi-deploy.tar.gz && npm install --production && (pm2 describe Evaluasi-Kegiatan > /dev/null 2>&1 && pm2 restart Evaluasi-Kegiatan || pm2 start server.js --name Evaluasi-Kegiatan) && pm2 save"
+ssh -i "%SSH_KEY%" %SSH_OPTS% %REMOTE% "cd /home/opc/Evaluasi-Kegiatan && tar -xzvf evaluasi-deploy.tar.gz && npm install --production && (pm2 describe Evaluasi-Kegiatan > /dev/null 2>&1 && pm2 restart Evaluasi-Kegiatan || pm2 start server.js --name Evaluasi-Kegiatan -i max) && pm2 save"
 if %errorlevel% neq 0 (echo GAGAL eksekusi remote! & exit /b 1)
 
 echo.

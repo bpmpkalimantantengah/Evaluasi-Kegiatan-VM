@@ -740,10 +740,12 @@ const Ev = (() => {
   // ── API CALL (Node.js VM via fetch) ─────────────────────
   async function api(action, data = {}) {
     try {
-      data.token = TOKEN;
       const res = await fetch(APP_URL + '/api/action', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${TOKEN}`
+        },
         body: JSON.stringify({ action, ...data })
       });
       if (!res.ok) return { success: false, error: 'HTTP ' + res.status };

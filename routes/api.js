@@ -4,26 +4,39 @@ const axios = require('axios');
 const aiController = require('../controllers/aiController');
 const laporanController = require('../controllers/laporanController');
 const rekapController = require('../controllers/rekapController');
+const dbSSO = require('../config/db_sso');
 
 const VM_API_BASE = 'http://127.0.0.1:3000/api/evaluasi';
 axios.defaults.headers.common['x-api-key'] = process.env.API_KEY || 'gaspol_secret_key_2026';
 
 // Action Dispatcher to emulate GAS Code.js processAction
 router.post('/action', async (req, res) => {
-  const { action, token, ...data } = req.body;
+  const { action, ...data } = req.body;
+  
+  const authHeader = req.headers.authorization;
+  let token = null;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  }
   
   // -- Auth Middleware --
   if (!token) {
     return res.status(401).json({ success: false, error: 'Autentikasi diperlukan. Token tidak ditemukan.' });
   }
   try {
-    const authRes = await axios.post('http://127.0.0.1:4000/auth/validate', { token });
-    if (!authRes.data.valid || !authRes.data.user) {
+    const [sessions] = await dbSSO.query('SELECT userId FROM sessions WHERE token = ? AND isValid = 1 AND expiresAt > NOW() LIMIT 1', [token]);
+    if (sessions.length === 0) {
       return res.status(401).json({ success: false, error: 'Sesi telah berakhir. Silakan login kembali.' });
     }
-    // Inject user info to data
-    data.user = authRes.data.user;
+    
+    const [users] = await dbSSO.query('SELECT userId, username, fullName, role, status FROM users WHERE userId = ? LIMIT 1', [sessions[0].userId]);
+    if (users.length === 0 || users[0].status !== 'ACTIVE') {
+      return res.status(401).json({ success: false, error: 'Akun Anda tidak aktif atau tidak valid.' });
+    }
+    
+    data.user = users[0];
   } catch (err) {
+    console.error('SSO DB Error:', err);
     return res.status(500).json({ success: false, error: 'Gagal memverifikasi token sesi.' });
   }
   // ---------------------
