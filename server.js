@@ -55,7 +55,15 @@ app.use('/evaluasi/api', require('./routes/api'));
 
 // Serve SPA Frontend
 app.use(async (req, res) => {
-  const token = req.query.token || '';
+  let token = req.query.token || '';
+  if (!token && req.headers.cookie) {
+    const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
+      const parts = c.trim().split('=');
+      if (parts.length >= 2) acc[parts[0]] = parts[1];
+      return acc;
+    }, {});
+    token = cookies['gaspol_token'] || '';
+  }
   const appUrl = 'https://168-110-208-72.nip.io/evaluasi'; // Node.js VM endpoint (HTTPS)
   const appId = 'APP_B30A8869'; // ID App Evaluasi Kegiatan (VM) di Portal GASPOL
   
