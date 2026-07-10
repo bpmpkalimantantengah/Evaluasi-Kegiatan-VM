@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Evaluasi Pelaksanaan Kegiatan — BPMP Kalteng</title>
+<meta name="description" content="Sistem Evaluasi Pelaksanaan Kegiatan BPMP Kalimantan Tengah — import, analisis, dan cetak laporan evaluasi kegiatan berbasis AI."/>
+<script>
+window.onerror = function(msg, url, line) { 
+  document.body.innerHTML += '<div style="position:fixed;top:10%;left:10%;right:10%;background:red;color:white;z-index:99999;padding:20px;border-radius:8px;"><b>Error JS:</b><br>' + msg + '<br>Line: ' + line + '</div>';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  document.body.innerHTML += '<div style="position:fixed;top:20%;left:10%;right:10%;background:red;color:white;z-index:99999;padding:20px;border-radius:8px;"><b>Promise Error:</b><br>' + (e.reason && e.reason.message ? e.reason.message : e.reason) + '</div>';
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+<link rel="stylesheet" href="/css/tabler-icons.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
+<link href="/css/bootstrap-icons.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+
+/* CSS Spinner untuk Logout */
+@keyframes spinner-border {
+  to { transform: rotate(360deg); }
+}
+.spinner-border {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  vertical-align: -0.125em;
+  border: 0.15em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: 0.75s linear infinite spinner-border;
+}
+.spinner-border-sm {
+  width: 14px !important;
+  height: 14px !important;
+  border-width: 2px !important;
+}
+
+
+
+  /*Reset & Base*/
+/* ── ROOT ────────────────────────────────────────────────── */
+:root {
+  --gp: #003366; --gp2: #0a4080; --gp3: rgba(0,51,102,0.08);
+  --gs: #1E90FF; --gs2: #0070e0;
+  --ga: #FFEB3B; --ga2: #f0d800;
+  --white: #ffffff; --bg: #f0f4f8; --card: #ffffff;
+  --text: #1a2332; --text2: #4a5568; --text3: #8a9bb0;
+  --border: rgba(0,51,102,0.12);
+  --success: #22c55e; --danger: #ef4444; --warn: #f59e0b;
+  --radius: 10px; --radius-lg: 16px;
+  --shadow: 0 2px 12px rgba(0,51,102,0.08);
+  --sidebar-w: 260px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+a { text-decoration: none; color: inherit; }
+input, button, select, textarea { font-family: inherit; }
+
+/* ── UTILITIES ───────────────────────────────────────────── */
+.hidden { display: none !important; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.w-full { width: 100%; }
+.text-sm { font-size: 13px; }
+.text-xs { font-size: 11px; }
+
+#toast-wrap { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.gaspol-toast { pointer-events: auto; padding: 12px 24px; border-radius: 50px; font-size: 14px; font-weight: 500; color: #fff; animation: toastIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); min-width: 200px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); background: #002244; }
+.toast-success { background: #166534; } .toast-error { background: #991b1b; } .toast-info { background: #002244; } .toast-warning { background: #b45309; }
+@keyframes toastIn { from { opacity:0; transform:scale(0.8) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+/* ── LOADING ─────────────────────────────────────────────── */
+#loading { position:fixed; inset:0; background:var(--gp); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9000; gap:16px; }
+#loading .logo-text { color:var(--ga); font-size:32px; font-weight:800; letter-spacing:3px; }
+#loading .logo-sub  { color:rgba(255,255,255,0.6); font-size:11px; letter-spacing:1px; }
+.spinner { width:36px; height:36px; border:3px solid rgba(255,235,59,.3); border-top-color:var(--ga); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar { width:var(--sidebar-w); background:var(--gp); position:fixed; top:0; left:0; bottom:0; z-index:100; display:flex; flex-direction:column; transition:transform .3s; }
+.sidebar-head { height:64px; padding:0 20px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:12px; background: #002244; box-sizing: border-box; }
+.sidebar-icon { width:38px; height:38px; background:var(--ga); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.sidebar-icon i { font-size:22px; color:var(--gp); }
+.sidebar-brand-name { color:#fff; font-size:13px; font-weight:800; letter-spacing:1px; line-height:1.2; }
+.sidebar-brand-sub  { color:rgba(255,255,255,.4); font-size:9px; letter-spacing:.8px; margin-top:2px; }
+nav.sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
+.nav-section { font-size:9px; font-weight:700; color:rgba(255,255,255,.3); letter-spacing:1.2px; padding:12px 18px 4px; text-transform:uppercase; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:10px 18px; cursor:pointer; color:rgba(255,255,255,.6); font-size:13px; font-weight:400; border-left:3px solid transparent; transition:all .15s; user-select:none; }
+.nav-item:hover { background:rgba(255,255,255,.06); color:rgba(255,255,255,.9); }
+.nav-item.active { background:rgba(30,144,255,.18); color:#fff; border-left-color:var(--ga); font-weight:500; }
+.nav-item i { font-size:18px; flex-shrink:0; }
+.sidebar-bottom { padding:14px 18px; border-top:1px solid rgba(255,255,255,.08); }
+.sidebar-user-info { display:flex; align-items:center; gap:10px; padding:8px 0; }
+.user-avatar { width:34px; height:34px; border-radius:50%; background:var(--ga); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:var(--gp); flex-shrink:0; }
+.user-name { color:#fff; font-size:12px; font-weight:500; }
+.user-sub  { color:rgba(255,255,255,.4); font-size:10px; }
+.btn-logout { width:100%; margin-top:8px; padding:8px; border-radius:var(--radius); border:1px solid rgba(255,255,255,.15); background:transparent; color:rgba(255,255,255,.6); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all .15s; }
+.btn-logout:hover { background:rgba(239,68,68,.2); border-color:rgba(239,68,68,.4); color:#fca5a5; }
+
+/* ── MAIN CONTENT ────────────────────────────────────────── */
+.main-content { margin-left:var(--sidebar-w); min-height:100vh; display:flex; flex-direction:column; }
+.topbar { height:64px; padding:0 28px; background:#002244; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; box-sizing: border-box; }
+.topbar-title { font-size:15px; font-weight:700; color:#fff; }
+.topbar-sub   { font-size:12px; color:rgba(255,255,255,0.7); margin-top:1px; }
+.topbar-actions { display:flex; gap:12px; align-items:center; }
+.icon-btn { width:36px; height:36px; border-radius:var(--radius); border:1.5px solid rgba(255,255,255,0.2); background:transparent; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s; }
+.icon-btn i { font-size:18px; }
+.icon-btn:hover { border-color:#FFEB3B; color:#FFEB3B; }
+.btn-portal { font-size:13px; padding:6px 14px; color:#FFEB3B; border:1px solid #FFEB3B; background:transparent; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .15s; text-decoration:none; }
+.btn-portal:hover { background:rgba(255,235,59,0.1); color:#FFEB3B; }
+
+/* ── PAGE VIEWS ──────────────────────────────────────────── */
+.page-view { display:none; padding:28px; flex:1; }
+.page-view.active { display:block; }
+.page-title { font-size:20px; font-weight:700; color:var(--gp); margin-bottom:6px; }
+.page-subtitle { font-size:13px; color:var(--text3); margin-bottom:24px; }
+
+/* ── CARDS ───────────────────────────────────────────────── */
+.card { background:var(--card); border-radius:var(--radius-lg); border:1.5px solid var(--border); padding:24px; }
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px; }
+.stat-card { background:var(--card); border-radius:var(--radius-lg); border:1.5px solid var(--border); padding:18px 20px; display:flex; align-items:center; gap:14px; }
+.stat-icon { width:44px; height:44px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.stat-icon i { font-size:22px; }
+.stat-label { font-size:11px; color:var(--text3); font-weight:500; }
+.stat-val   { font-size:24px; font-weight:700; color:var(--text); }
+
+/* ── FORM ────────────────────────────────────────────────── */
+.form-label { display:block; font-size:11px; font-weight:700; color:var(--text2); margin-bottom:6px; letter-spacing:.3px; text-transform:uppercase; }
+.form-input { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:var(--radius); font-size:13px; color:var(--text); background:#f8fafc; outline:none; transition:border-color .2s; }
+.form-input:focus { border-color:var(--gs); background:#fff; box-shadow:0 0 0 3px rgba(30,144,255,.1); }
+.form-field { margin-bottom:16px; }
+.btn-primary { padding:10px 22px; background:var(--gp); color:#fff; border:none; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:background .15s; }
+.btn-primary:hover { background:var(--gp2); }
+.btn-primary:disabled { opacity:.6; cursor:not-allowed; }
+.btn-secondary { padding:10px 20px; border:1.5px solid var(--border); border-radius:var(--radius); font-size:13px; background:transparent; color:var(--text2); cursor:pointer; font-weight:500; display:inline-flex; align-items:center; gap:6px; transition:all .15s; }
+.btn-secondary:hover { border-color:var(--gs); color:var(--gs); }
+.btn-danger { padding:10px 20px; background:var(--danger); color:#fff; border:none; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+.btn-success { padding:10px 20px; background:#166534; color:#fff; border:none; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+.btn-ai { padding:10px 20px; background:linear-gradient(135deg,#003366,#1E90FF); color:#fff; border:none; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:opacity .15s; }
+.btn-ai:hover { opacity:.88; }
+.btn-ai:disabled { opacity:.5; cursor:not-allowed; }
+
+/* ── TABLE ───────────────────────────────────────────────── */
+.table-wrap { overflow-x:auto; }
+.data-table { width:100%; border-collapse:collapse; background:var(--card); border-radius:var(--radius-lg); overflow:hidden; border:1.5px solid var(--border); font-size:13px; min-width:800px; }
+.data-table th { text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); padding:12px 16px; background:#f8fafc; border-bottom:1.5px solid var(--border); white-space:nowrap; }
+.data-table td { padding:11px 16px; color:var(--text); border-bottom:1px solid var(--border); white-space:nowrap; }
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tr:hover td { background:#f8fafc; }
+.badge { font-size:10px; padding:3px 10px; border-radius:12px; font-weight:600; }
+.badge-success { background:#dcfce7; color:#166534; }
+.badge-warn    { background:#fef3c7; color:#92400e; }
+.badge-info    { background:#dbeafe; color:#1e40af; }
+
+/* ── MODAL ───────────────────────────────────────────────── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,20,50,.55); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; }
+.modal { background:var(--white); border-radius:var(--radius-lg); width:100%; max-width:520px; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 20px 60px rgba(0,51,102,.2); }
+.modal-lg { max-width:780px; }
+.modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+.modal-title  { font-size:17px; font-weight:700; color:var(--gp); }
+.modal-close  { width:32px; height:32px; border:none; background:#f1f5f9; border-radius:8px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; color:var(--text2); flex-shrink:0; }
+.modal-close:hover { background:#e2e8f0; }
+.modal-footer { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap; }
+
+/* ── UPLOAD ZONE ─────────────────────────────────────────── */
+.upload-zone { border:2px dashed var(--border); border-radius:var(--radius-lg); padding:32px; text-align:center; transition:all .2s; cursor:pointer; }
+.upload-zone:hover, .upload-zone.drag-over { border-color:var(--gs); background:#f0f7ff; }
+.upload-zone i { font-size:40px; color:var(--text3); margin-bottom:10px; display:block; }
+.upload-zone p  { font-size:13px; color:var(--text3); }
+.upload-zone .upload-hint { font-size:11px; color:var(--text3); margin-top:4px; }
+
+/* ── PREVIEW IMPORT ──────────────────────────────────────── */
+.preview-tbl { width:100%; border-collapse:collapse; font-size:11px; max-height:200px; }
+.preview-tbl th { background:var(--gp); color:#fff; padding:6px 10px; text-align:left; position:sticky; top:0; }
+.preview-tbl td { padding:5px 10px; border-bottom:1px solid var(--border); }
+.preview-tbl tr:nth-child(even) td { background:#f8fafc; }
+
+/* ── STATISTIK CARD ──────────────────────────────────────── */
+.stat-big { text-align:center; }
+.stat-big .avg { font-size:40px; font-weight:800; color:var(--gp); line-height:1; }
+.stat-big .kat { font-size:13px; color:var(--gs); font-weight:600; margin-top:4px; }
+.stat-big .n   { font-size:11px; color:var(--text3); margin-top:2px; }
+
+/* ── PROGRESS BAR ────────────────────────────────────────── */
+.prog-bar-wrap { margin:4px 0; }
+.prog-bar-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; font-size:11px; }
+.prog-bar-label { width:90px; color:var(--text2); flex-shrink:0; }
+.prog-bar-bg { flex:1; height:8px; background:#e8edf5; border-radius:4px; overflow:hidden; }
+.prog-bar-fill { height:8px; border-radius:4px; transition:width .4s; }
+
+/* ── AI BOX ──────────────────────────────────────────────── */
+.ai-box { background:linear-gradient(135deg,#f0f7ff,#e8f4ff); border:1.5px solid #1E90FF; border-radius:var(--radius-lg); padding:20px; margin-top:16px; }
+.ai-box-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.ai-box-header i { font-size:22px; color:var(--gp); }
+.ai-box-title { font-size:14px; font-weight:700; color:var(--gp); }
+.ai-result { font-size:13px; color:var(--text2); line-height:1.8; white-space:pre-line; background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-top:10px; }
+.ai-model-badge { font-size:10px; background:#e0edff; color:var(--gp2); border-radius:8px; padding:2px 8px; font-weight:600; }
+
+/* ── KEGIATAN LIST ───────────────────────────────────────── */
+#kegiatan-list { overflow-x: auto; padding-bottom: 8px; }
+.kegiatan-card { background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:12px; display:flex; align-items:center; gap:16px; cursor:pointer; transition:all .2s; min-width:800px; }
+.kegiatan-card:hover { border-color:var(--gs); box-shadow:var(--shadow); transform:translateY(-1px); }
+.kegiatan-icon { width:42px; height:42px; border-radius:11px; background:#dbeafe; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.kegiatan-icon i { font-size:20px; color:#1e40af; }
+.kegiatan-name { font-size:14px; font-weight:600; color:var(--text); }
+.kegiatan-meta { font-size:11px; color:var(--text3); margin-top:3px; }
+.kegiatan-actions { margin-left:auto; display:flex; gap:6px; }
+
+/* ── SECTION TABS ────────────────────────────────────────── */
+.section-tabs { display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+.stab { padding:8px 18px; border-radius:var(--radius); border:1.5px solid var(--border); font-size:12px; font-weight:600; cursor:pointer; background:transparent; color:var(--text2); transition:all .15s; }
+.stab.active { background:var(--gp); color:#fff; border-color:var(--gp); }
+.stab:hover:not(.active) { border-color:var(--gs); color:var(--gs); }
+
+/* ── FILTER TOOLBAR ──────────────────────────────────────── */
+.filter-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+.search-wrap { position:relative; flex:1; min-width:200px; }
+.search-wrap i { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:17px; color:var(--text3); }
+.search-input { width:100%; padding:9px 12px 9px 36px; border:1.5px solid var(--border); border-radius:var(--radius); font-size:13px; color:var(--text); background:var(--white); outline:none; }
+.search-input:focus { border-color:var(--gs); }
+
+/* ── EMPTY STATE ─────────────────────────────────────────── */
+.empty-state { text-align:center; padding:60px 20px; color:var(--text3); }
+.empty-state i { font-size:52px; margin-bottom:16px; display:block; opacity:.4; }
+.empty-state p { font-size:14px; }
+/* MOBILE OVERLAY & RESPONSIVENESS */
+.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.2); }
+  .main-content { margin-left: 0; width: 100%; }
+  #btn-sidebar-toggle { display: flex !important; }
+  #btn-sidebar-close { display: flex !important; }
+  .form-input, .search-input, select { font-size: 16px !important; }
+  .btn-primary, .btn-secondary, .btn-danger, .btn-success, .btn-ai { padding: 12px 16px !important; font-size: 14px !important; }
+  .stat-grid { grid-template-columns: 1fr; }
+  .data-table td { padding: 14px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Toast ───────────────────────────────────────────────── -->
+<div id="toast-wrap" aria-live="polite"></div>
+
+<!-- ── Loading ─────────────────────────────────────────────── -->
+<div id="loading">
+  <div class="logo-text">EVALUASI</div>
+  <div class="logo-sub">BPMP KALIMANTAN TENGAH</div>
+  <div class="spinner"></div>
+  <div id="loading-text" style="color:var(--text2);margin-top:16px;font-size:13px;font-weight:600;">Memuat aplikasi...</div>
+</div>
+
+<!-- ── APP SHELL ────────────────────────────────────────────── -->
+<div id="app" class="hidden">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head" style="justify-content: space-between; padding-right: 14px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="sidebar-icon"><i class="ti ti-chart-bar"></i></div>
+        <div>
+          <div class="sidebar-brand-name">EVALUASI</div>
+          <div class="sidebar-brand-sub">BPMP KALTENG</div>
+        </div>
+      </div>
+      <button class="icon-btn" id="btn-sidebar-close" onclick="toggleSidebar(true)" style="display: none; color: rgba(255,255,255,0.7); border: none; background: transparent; cursor: pointer;">
+        <i class="ti ti-chevron-left" style="font-size: 24px;"></i>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Menu Utama</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="showView('dashboard', this)">
+        <i class="ti ti-layout-dashboard"></i> Dashboard
+      </div>
+      <div class="nav-item" id="nav-daftar" onclick="showView('daftar', this)">
+        <i class="ti ti-list-check"></i> Daftar Kegiatan
+      </div>
+      <div class="nav-section" style="margin-top:8px;">Evaluasi &amp; Laporan</div>
+      <div class="nav-item" id="nav-evaluasi" onclick="showView('evaluasi', this)">
+        <i class="ti ti-report-analytics"></i> Analisis Evaluasi
+      </div>
+      <div class="nav-item" id="nav-laporan" onclick="showView('laporan', this)">
+        <i class="ti ti-file-text"></i> Cetak Laporan
+      </div>
+      <div class="nav-section admin-only" style="margin-top:8px; display:none;">Admin Panel</div>
+      <div class="nav-item admin-only" id="nav-admin" onclick="showView('admin', this)" style="display:none;">
+        <i class="ti ti-settings"></i> Pengaturan Tim Kerja
+      </div>
+      <div class="nav-item admin-only" id="nav-instrumen" onclick="showView('instrumen', this)" style="display:none;">
+        <i class="ti ti-list-details"></i> Pengaturan Instrumen
+      </div>
+    </nav>
+    <div style="margin-top:auto; border-top:1px solid rgba(255,255,255,0.1); padding:12px 20px;">
+      <div style="font-size:0.7rem; color:rgba(255,255,255,0.35); text-align:center;">
+        © Pubkom 2026
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button class="icon-btn" id="btn-sidebar-toggle" onclick="toggleSidebar()" style="display: none; background: transparent; border: none; color: #fff; cursor: pointer;">
+          <i class="ti ti-menu-2" style="font-size: 24px;"></i>
+        </button>
+      </div>
+      <div class="topbar-actions">
+        <div style="display: flex; align-items: center; gap: 15px; margin-right: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-person-circle" style="color:#1E90FF; font-size:1.2rem;"></i>
+            <span id="topbar-user-name" style="color:#fff; font-size:0.875rem; font-weight:500;">—</span>
+            <span id="topbar-user-role" style="background:#1E90FF; color:#fff; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:bold; letter-spacing:0.5px;">—</span>
+          </div>
+        </div>
+        <button class="btn-portal" id="btnLogout" title="Kembali ke Portal" onclick="Ev.logout()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="margin-bottom:2px;"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5Z"/></svg> Portal</button>
+      </div>
+    </div>
+
+    <!-- ── DASHBOARD ─────────────────────────────────────── -->
+    <div class="page-view active" id="view-dashboard">
+      <div style="margin-bottom: 24px;">
+        <div class="page-title" style="margin-bottom:4px;">Dashboard</div>
+        <div class="page-subtitle">Ringkasan statistik aplikasi Evaluasi Kegiatan.</div>
+      </div>
+      <div class="stat-grid" id="dash-stats">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dbeafe;"><i class="ti ti-clipboard-list" style="color:#1e40af;"></i></div>
+          <div><div class="stat-label">Total Kegiatan</div><div class="stat-val" id="ds-total">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dcfce7;"><i class="ti ti-users" style="color:#166534;"></i></div>
+          <div><div class="stat-label">Total Responden</div><div class="stat-val" id="ds-responden">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef3c7;"><i class="ti ti-star" style="color:#92400e;"></i></div>
+          <div><div class="stat-label">Rata-rata K</div><div class="stat-val" id="ds-avg-k">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#ede9fe;"><i class="ti ti-calendar-event" style="color:#5b21b6;"></i></div>
+          <div><div class="stat-label">Tahun Aktif</div><div class="stat-val" id="ds-tahun">—</div></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <!-- Kegiatan Terbaru -->
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;color:var(--gp);margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+            <i class="ti ti-history"></i> Kegiatan Terbaru
+          </div>
+          <div id="dash-recent"></div>
+        </div>
+        <!-- Info -->
+        <div class="card" style="background:linear-gradient(135deg,var(--gp) 0%,#0a4080 100%);border-color:var(--gp);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:48px;height:48px;background:var(--ga);border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-brain" style="font-size:24px;color:var(--gp);"></i></div>
+            <div>
+              <div style="color:#fff;font-size:15px;font-weight:700;">AI Ringkas Saran</div>
+              <div style="color:rgba(255,255,255,.6);font-size:11px;">Didukung Gemini AI</div>
+            </div>
+          </div>
+          <p style="color:rgba(255,255,255,.75);font-size:12px;line-height:1.7;">Sistem ini terintegrasi dengan <strong style="color:var(--ga);">Google Gemini AI</strong> melalui GASPOL Portal untuk merangkum saran peserta secara otomatis. Buka tab <strong style="color:var(--ga);">Analisis Evaluasi</strong>, pilih kegiatan, lalu klik <em>"Rangkum Saran (AI)"</em>.</p>
+          <button class="btn-primary" style="margin-top:16px;background:var(--ga);color:var(--gp);" onclick="showView('evaluasi', document.getElementById('nav-evaluasi'))">
+            <i class="ti ti-arrow-right"></i> Mulai Evaluasi
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DAFTAR KEGIATAN ──────────────────────────────── -->
+    <div class="page-view" id="view-daftar">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+        <div>
+          <div class="page-title" style="margin-bottom:4px;">Daftar Kegiatan</div>
+          <div class="page-subtitle">Kelola dan input evaluasi kegiatan.</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-primary" onclick="Ev.showKegiatanModal()"><i class="ti ti-plus"></i> Tambah Kegiatan</button>
+        </div>
+      </div>
+
+      <div class="filter-toolbar">
+        <div class="search-wrap">
+          <i class="ti ti-search"></i>
+          <input class="search-input" type="text" id="inp-search-kegiatan" placeholder="Cari nama kegiatan..." oninput="Ev.filterKegiatan(this.value)"/>
+        </div>
+        <select class="form-input" style="width:160px;" id="filter-tahun" onchange="Ev.filterKegiatan()">
+          <option value="">Semua Tahun</option>
+        </select>
+        <select class="form-input" style="width:200px;" id="filter-timkerja" onchange="Ev.filterKegiatan()">
+          <option value="">Semua Tim Kerja</option>
+        </select>
+      </div>
+
+      <div id="kegiatan-list"><div class="empty-state"><i class="ti ti-loader-2"></i><p>Memuat...</p></div></div>
+    </div>
+
+    <!-- ── ANALISIS EVALUASI ─────────────────────────────── -->
+    <div class="page-view" id="view-evaluasi">
+      <div class="page-title">Analisis Evaluasi</div>
+      <div class="page-subtitle">Pilih kegiatan untuk melihat statistik dan merangkum saran dengan AI.</div>
+
+      <div class="form-field" style="max-width:480px;">
+        <label class="form-label">Pilih Kegiatan</label>
+        <select id="eval-kegiatan-select" class="form-input" onchange="Ev.loadEvaluasi(this.value)">
+          <option value="">-- Pilih Kegiatan --</option>
+        </select>
+      </div>
+
+      <div id="eval-content" class="hidden">
+        <!-- Section tabs -->
+        <div class="section-tabs">
+          <button class="stab active" id="stab-k" onclick="Ev.evalTab('K', this)">K — Keterlaksanaan</button>
+          <button class="stab" id="stab-s" onclick="Ev.evalTab('S', this)">S — Sarana Prasarana</button>
+          <button class="stab" id="stab-n" onclick="Ev.evalTab('N', this)">N — Narasumber</button>
+        </div>
+
+        <!-- Konten evaluasi per tab -->
+        <div id="eval-tab-k"></div>
+        <div id="eval-tab-s" class="hidden"></div>
+        <div id="eval-tab-n" class="hidden"></div>
+      </div>
+    </div>
+
+    <!-- ── LAPORAN ─────────────────────────────────────────── -->
+    <div class="page-view" id="view-laporan">
+      <div class="page-title">Cetak Laporan</div>
+      <div class="page-subtitle">Pilih kegiatan dan opsi, lalu cetak laporan hasil evaluasi.</div>
+
+      <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: stretch;">
+        <!-- Form laporan (kiri) -->
+        <div style="flex: 1; min-width: 300px; max-width: 500px;">
+          <div class="card">
+            <div class="form-field">
+              <label class="form-label">Pilih Kegiatan</label>
+              <select id="lap-kegiatan-select" class="form-input" onchange="document.getElementById('ai-summary-container').style.display='none'">
+                <option value="">-- Pilih Kegiatan --</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" style="margin-bottom:10px;">Ringkasan AI (Opsional)</label>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                  <input type="checkbox" id="cb-ai-all" style="width:16px;height:16px;accent-color:var(--gp);"/> Ringkasan Saran AI
+                </label>
+              </div>
+              <div style="font-size:11px;color:var(--text3);margin-top:8px;">Centang jika ingin AI merangkum seluruh saran (K, S, N) secara gabungan. Proses ini memerlukan beberapa detik.</div>
+            </div>
+
+            <button class="btn-primary w-full" onclick="Ev.generateLaporanDocs()" id="btn-gen-lap">
+              <i class="ti ti-file-text"></i> Generate Laporan
+            </button>
+            <button class="btn-primary w-full" style="background:var(--ga); color:var(--text); margin-top:12px;" onclick="Ev.generateOnlyRingkasanAI()" id="btn-gen-ai-only">
+              <i class="ti ti-robot"></i> Generate Saran
+            </button>
+            <button class="btn-secondary w-full" style="margin-top:12px;" onclick="Ev.downloadXLSX()" id="btn-gen-csv">
+              <i class="ti ti-download"></i> Unduh Data Mentah (XLSX)
+            </button>
+          </div>
+        </div>
+        
+        <!-- Hasil AI (kanan) -->
+        <div style="flex: 1; min-width: 300px; display: none;" id="ai-summary-container">
+          <div class="card" style="height: 100%;">
+            <div style="font-weight:600; color:var(--gp); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <i class="ti ti-robot"></i> Ringkasan Saran
+            </div>
+            <div id="ai-summary-content" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: var(--text2);">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADMIN PANEL ───────────────────────────────────────── -->
+    <div class="page-view" id="view-admin">
+      <div class="page-title">Pengaturan Tim Kerja</div>
+      <div class="page-subtitle">Kelola daftar Tim Kerja yang akan muncul di pilihan dropdown pada aplikasi ini.</div>
+
+      <div class="card" style="max-width: 600px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+          <div style="font-weight:600; color:var(--gp);">Daftar Tim Kerja</div>
+          <button class="btn-primary" onclick="Ev.showAdminTimKerjaModal()"><i class="ti ti-plus"></i> Tambah Tim Kerja</button>
+        </div>
+        <div class="table-wrap" style="border:1px solid var(--border); border-radius:8px;">
+          <table class="preview-tbl" style="width:100%; border-collapse:collapse;">
+            <thead style="background:#f8fafc; border-bottom:1px solid var(--border);">
+              <tr>
+                <th style="padding:12px; text-align:left; font-size:12px; color:var(--text2);">Nama Tim Kerja</th>
+                <th style="width:100px; padding:12px; text-align:right; font-size:12px; color:var(--text2);">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="admin-timkerja-tbody">
+              <tr><td colspan="2" style="text-align:center; padding:20px; color:var(--text3); font-size:13px;">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PENGATURAN INSTRUMEN ───────────────────────────────────────── -->
+    <div class="page-view" id="view-instrumen">
+      <div class="page-title">Pengaturan Instrumen (VM)</div>
+      <div class="page-subtitle">Atur pertanyaan yang akan muncul di form evaluasi partisipan secara live.</div>
+
+      <div class="card" style="max-width: 800px; margin-top: 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+          <div style="font-weight:600; color:var(--gp);">Daftar Pertanyaan Instrumen</div>
+          <select id="sel-instrumen-tipe" class="form-input" style="max-width:250px;" onchange="Ev.loadAdminInstrumen()">
+            <option value="K">Keterlaksanaan (K)</option>
+            <option value="S">Sarana Prasarana (S)</option>
+            <option value="N">Narasumber (N)</option>
+          </select>
+        </div>
+        <div class="table-wrap" style="border:1px solid var(--border); border-radius:8px;">
+          <table class="preview-tbl" style="width:100%; border-collapse:collapse;">
+            <thead style="background:#f8fafc; border-bottom:1px solid var(--border);">
+              <tr>
+                <th style="width:50px; padding:12px; text-align:center; font-size:12px; color:var(--text2);">No</th>
+                <th style="padding:12px; text-align:left; font-size:12px; color:var(--text2);">Pertanyaan / Pernyataan</th>
+                <th style="width:80px; padding:12px; text-align:center; font-size:12px; color:var(--text2);">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="admin-instrumen-tbody">
+              <tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text3); font-size:13px;">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:16px; display:flex; justify-content:space-between;">
+            <button class="btn-secondary" onclick="Ev.tambahPernyataanInstrumen()"><i class="ti ti-plus"></i> Tambah Pertanyaan</button>
+            <button class="btn-primary" onclick="Ev.simpanAdminInstrumen()"><i class="ti ti-device-floppy"></i> Simpan ke VM</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end main-content -->
+</div><!-- end app -->
+
+<!-- ── MODAL QR CODE ──────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-qr">
+  <div class="modal" style="max-width:400px; text-align:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div style="font-size:16px; font-weight:700; color:var(--gp);">Bagikan Formulir Evaluasi</div>
+      <button class="modal-close" onclick="closeModal('modal-qr')"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="margin-bottom: 20px;">
+        <h4 id="qr-kegiatan-title" style="color:var(--gp); margin-bottom:10px;"></h4>
+        <p style="font-size:13px; color:var(--text2); margin-bottom: 10px;">Pindai QR Code berikut untuk mengisi seluruh instrumen secara berurutan:</p>
+    <div id="qrcode-container" style="display:flex; justify-content:center; margin-bottom:15px; background:#fff; padding:10px; border-radius:10px; border:1px dashed #ccc; min-height: 200px; align-items:center;">
+        <!-- QR generated here -->
+    </div>
+    <div style="font-size: 11px; color:var(--text3); word-break: break-all;" id="qr-link-text"></div>
+    <div style="display:flex; gap:10px; margin-top:15px;">
+        <button class="btn-secondary" style="flex:1; justify-content:center; padding:6px; font-size:12px;" onclick="Ev.fullscreenQR()"><i class="ti ti-maximize"></i> Fullscreen</button>
+        <button class="btn-primary" style="flex:1; justify-content:center; padding:6px; font-size:12px;" onclick="Ev.downloadQR()"><i class="ti ti-download"></i> Unduh QR</button>
+    </div>
+    <button class="btn-secondary" style="margin-top:10px; width:100%; justify-content:center;" onclick="Ev.salinLink()"><i class="ti ti-copy"></i> Salin Link Formulir</button>
+  </div>
+</div>
+</div>
+
+<!-- ── MODAL TIM KERJA ─────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-admin-timkerja">
+  <div class="modal" style="max-width:400px;">
+    <div style="font-size:16px; font-weight:700; color:var(--gp); margin-bottom:16px;" id="mdl-tk-title">Tambah Tim Kerja</div>
+    <input type="hidden" id="mdl-tk-oldnama" />
+    <div class="form-field">
+      <label class="form-label">Nama Tim Kerja</label>
+      <input type="text" id="mdl-tk-nama" class="form-input" placeholder="Masukkan nama tim kerja..." />
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn-secondary" onclick="closeModal('modal-admin-timkerja')">Batal</button>
+      <button class="btn-primary" onclick="Ev.saveAdminTimKerja()"><i class="ti ti-device-floppy"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL RESPONDEN ───────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-responden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Daftar Responden</h3>
+    </div>
+    <div class="modal-body" id="responden-list-content" style="max-height: 400px; overflow-y: auto;">
+      <!-- Content here -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="document.getElementById('modal-responden').classList.add('hidden')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL KEGIATAN ────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-kegiatan">
+  <div class="modal" style="max-width:550px;">
+    <div style="font-size:16px; font-weight:700; color:var(--gp); margin-bottom:16px;" id="mdl-keg-title">Tambah Kegiatan</div>
+    <input type="hidden" id="mdl-keg-oldnama" />
+    <div class="form-field">
+      <label class="form-label">Nama Kegiatan</label>
+      <input type="text" id="mdl-keg-nama" class="form-input" placeholder="Contoh: Bimbingan Teknis 2026..." />
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="form-field">
+        <label class="form-label">Tahun</label>
+        <input type="number" id="mdl-keg-tahun" class="form-input" value="<%= new Date().getFullYear() %>" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Tim Kerja</label>
+        <select id="mdl-keg-timkerja" class="form-input">
+          <option value="">-- Pilih --</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="form-field">
+        <label class="form-label">Tanggal Mulai</label>
+        <input type="date" id="mdl-keg-tglmulai" class="form-input" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Tanggal Akhir</label>
+        <input type="date" id="mdl-keg-tglakhir" class="form-input" />
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Tempat Kegiatan</label>
+      <input type="text" id="mdl-keg-tempat" class="form-input" placeholder="Contoh: BPMP Provinsi Kalimantan Tengah" />
+    </div>
+    <div class="form-field">
+      <label class="form-label">Penanggungjawab Kegiatan</label>
+      <input type="text" id="mdl-keg-penanggungjawab" class="form-input" placeholder="Contoh: Aty Muyassaroh, S.Si., M.Ed" />
+    </div>
+    <div class="form-field">
+      <label class="form-label">Daftar Narasumber</label>
+      <textarea id="mdl-keg-narasumber" class="form-input" rows="2" placeholder="Masukkan nama-nama narasumber dipisahkan titik koma (;). Contoh: Budi; Agus; Siti"></textarea>
+      <small style="color:var(--text3); font-size:11px;">*Kosongkan jika tidak ada evaluasi narasumber.</small>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn-secondary" onclick="closeModal('modal-kegiatan')">Batal</button>
+      <button class="btn-primary" id="btn-save-kegiatan" onclick="Ev.saveKegiatan()"><i class="ti ti-device-floppy"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL HAPUS KEGIATAN ──────────────────────────────── -->
+<div class="modal-overlay hidden" id="modal-confirm-hapus">
+  <div class="modal" style="max-width:400px;text-align:center;">
+    <div style="font-size:48px;color:var(--danger);margin-bottom:16px;"><i class="ti ti-alert-triangle"></i></div>
+    <div style="font-size:17px;font-weight:700;color:var(--gp);margin-bottom:10px;">Hapus Kegiatan</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.5;" id="confirm-hapus-msg">Apakah Anda yakin?</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="btn-secondary" onclick="closeModal('modal-confirm-hapus')">Batal</button>
+      <button class="btn-danger" id="btn-confirm-hapus">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Konstanta Aplikasi (dari server) ──────────────────────
+const APP_URL    = <%- JSON.stringify(appUrl || '') %>;
+const APP_ID     = <%- JSON.stringify(appId || '') %>;
+const TOKEN      = <%- JSON.stringify(token || '') %>;
+const PORTAL_URL = <%- JSON.stringify(portalUrl || 'https://168-110-208-72.nip.io/portal/') %>;
+const SSO_USER   = <%- ssoUser ? ssoUser : 'null' %>;
+
+const Ev = (() => {
+  let _kegiatan    = [];   // daftar kegiatan dari server
+  let _evalData    = null; // data evaluasi yang sedang dilihat
+  let _ssUrl       = null;
+  let _activeView  = 'dashboard';
+  let _evalNama    = '';
+  let _adminTimKerjaList = [];
+
+  // ── INIT ─────────────────────────────────────────────────
+  async function init() {
+    console.log('Evaluasi App Initing...');
+    if(typeof flatpickr !== 'undefined') {
+      const fpCfg = { altInput: true, altFormat: "d/m/Y", dateFormat: "Y-m-d", locale: "id" };
+      flatpickr("#mdl-keg-tglmulai", fpCfg);
+      flatpickr("#mdl-keg-tglakhir", fpCfg);
+    }
+    try {
+      // Info user dari SSO
+      if (typeof SSO_USER !== 'undefined' && SSO_USER) {
+        const u = SSO_USER;
+        const ini = (u.fullName || '').split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+        
+        // Sidebar
+        const sbAvatar = document.getElementById('sidebar-avatar');
+        if (sbAvatar) sbAvatar.textContent = ini;
+        const sbName = document.getElementById('sidebar-name');
+        if (sbName) sbName.textContent   = u.fullName;
+        const sbRole = document.getElementById('sidebar-role');
+        if (sbRole) sbRole.textContent   = u.role;
+
+        // Topbar
+        const tbName = document.getElementById('topbar-user-name');
+        if (tbName) tbName.textContent = u.fullName;
+        const tbRole = document.getElementById('topbar-user-role');
+        if (tbRole) tbRole.textContent = u.role;
+
+        // Admin menu
+        if (u.role === 'ADMIN' || u.role === 'SUPER_ADMIN') {
+          document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+          loadAdminTimKerja();
+        }
+      }
+
+      console.log('Loading kegiatan list...');
+      await loadKegiatanList();
+
+      console.log('Rendering dashboard...');
+      renderDashboard();
+
+    } catch (err) {
+      console.error('Init error:', err);
+      toast('Terjadi kesalahan saat memuat aplikasi: ' + err.message, 'error');
+    } finally {
+      document.getElementById('loading').style.display = 'none';
+      const appEl = document.getElementById('app');
+      if (appEl) appEl.classList.remove('hidden');
+      console.log('Init finished.');
+    }
+  }
+
+  // ── API CALL (Node.js VM via fetch) ─────────────────────
+  async function api(action, data = {}) {
+    try {
+      data.token = TOKEN;
+      const res = await fetch(APP_URL + '/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...data })
+      });
+      if (!res.ok) return { success: false, error: 'HTTP ' + res.status };
+      const obj = await res.json();
+      // Deteksi sesi berakhir
+      if (obj && obj.success === false && obj.error && obj.error.includes('Sesi telah berakhir')) {
+        toast(obj.error, 'error');
+        setTimeout(() => { window.top.location.href = PORTAL_URL; }, 2000);
+        return obj;
+      }
+      return obj;
+    } catch (e) {
+      console.error('[API Error]', e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  // ── LOAD DAFTAR KEGIATAN ──────────────────────────────────
+  async function loadKegiatanList() {
+    const r = await api('getSemuaKegiatan');
+    _kegiatan = r.success ? (r.data || []) : [];
+
+    // Isi select options di evaluasi & laporan
+    _populateKegiatanSelects();
+    _populateFilterOptions();
+    renderKegiatanList();
+  }
+
+  function _populateKegiatanSelects() {
+    ['eval-kegiatan-select', 'lap-kegiatan-select'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">-- Pilih Kegiatan --</option>' +
+        _kegiatan.map(k => `<option value="${escHtml(k.namaKegiatan)}">${escHtml(k.namaKegiatan)}</option>`).join('');
+      sel.value = cur;
+    });
+  }
+
+  function _populateFilterOptions() {
+    // Tahun
+    const tahunSet = new Set(_kegiatan.map(k => k.tahun).filter(Boolean));
+    const tahunSel = document.getElementById('filter-tahun');
+    if (tahunSel) {
+      const curTahun = tahunSel.value;
+      tahunSel.innerHTML = '<option value="">Semua Tahun</option>' +
+        [...tahunSet].sort((a,b)=>b-a).map(t => `<option value="${t}">${t}</option>`).join('');
+      tahunSel.value = curTahun;
+    }
+
+    // Tim Kerja
+    const tkSet = new Set(_kegiatan.map(k => k.timKerja).filter(Boolean));
+    const tkSel = document.getElementById('filter-timkerja');
+    if (tkSel) {
+      const curTk = tkSel.value;
+      tkSel.innerHTML = '<option value="">Semua Tim Kerja</option>' +
+        [...tkSet].sort().map(t => `<option value="${escHtml(t)}">${escHtml(t)}</option>`).join('');
+      tkSel.value = curTk;
+    }
+  }
+
+  // ── DASHBOARD ─────────────────────────────────────────────
+  function renderDashboard() {
+    const totalK = _kegiatan.length;
+    const totalR = _kegiatan.reduce((s, k) => s + (parseInt(k.respondK)||0), 0);
+    const tahunSet = new Set(_kegiatan.map(k => k.tahun).filter(Boolean));
+
+    const dsTotal = document.getElementById('ds-total');
+    if (dsTotal) dsTotal.textContent = totalK;
+    const dsResp = document.getElementById('ds-responden');
+    if (dsResp) dsResp.textContent = totalR;
+    const dsTahun = document.getElementById('ds-tahun');
+    if (dsTahun) dsTahun.textContent = [...tahunSet].sort((a,b)=>b-a)[0] || new Date().getFullYear();
+
+    const dsAvgK = document.getElementById('ds-avg-k');
+    if (dsAvgK) {
+      let sumK = 0, countK = 0;
+      _kegiatan.forEach(k => {
+        const val = parseFloat(k.avgK);
+        if (!isNaN(val) && val > 0) {
+          sumK += val;
+          countK++;
+        }
+      });
+      dsAvgK.textContent = countK > 0 ? (sumK / countK).toFixed(2) : '-';
+    }
+
+    // Kegiatan terbaru (5)
+    const recent = [..._kegiatan].sort((a, b) => {
+      const dateA = a.tglMulai ? new Date(a.tglMulai).getTime() : 0;
+      const dateB = b.tglMulai ? new Date(b.tglMulai).getTime() : 0;
+      if (dateB !== dateA) return dateB - dateA;
+      return a.namaKegiatan.localeCompare(b.namaKegiatan);
+    }).slice(0, 5);
+    
+    const recentEl = document.getElementById('dash-recent');
+    if (recentEl) {
+      if (!recent.length) {
+        recentEl.innerHTML = '<div class="empty-state" style="padding:20px;"><i class="ti ti-clipboard-list" style="font-size:32px;"></i><p>Belum ada kegiatan</p></div>';
+      } else {
+        recentEl.innerHTML = recent.map(k => `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s;" onclick="Ev.bukaEvaluasi('${escJs(k.namaKegiatan)}')" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+            <div style="width:32px;height:32px;background:#dbeafe;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+              <i class="ti ti-clipboard-list" style="font-size:16px;color:#1e40af;"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(k.namaKegiatan)}</div>
+              <div style="font-size:10px;color:var(--text3);">${escHtml(k.timKerja||'-')} · ${escHtml(String(k.tahun||'-'))}</div>
+            </div>
+          </div>`).join('');
+      }
+    }
+  }
+
+  // ── DAFTAR KEGIATAN ───────────────────────────────────────
+  function renderKegiatanList(filtered) {
+    const list = (filtered || _kegiatan).slice().sort((a, b) => {
+      const dateA = a.tglMulai ? new Date(a.tglMulai).getTime() : 0;
+      const dateB = b.tglMulai ? new Date(b.tglMulai).getTime() : 0;
+      if (dateB !== dateA) return dateB - dateA;
+      return a.namaKegiatan.localeCompare(b.namaKegiatan);
+    });
+    
+    const el = document.getElementById('kegiatan-list');
+    if (!el) return;
+    if (!list.length) {
+      el.innerHTML = '<div class="empty-state"><i class="ti ti-clipboard-list"></i><p>Belum ada kegiatan. Tambahkan kegiatan baru untuk memulai.</p></div>';
+      return;
+    }
+    
+    const role = (typeof SSO_USER !== 'undefined' && SSO_USER) ? SSO_USER.role : '';
+    const username = (typeof SSO_USER !== 'undefined' && SSO_USER) ? SSO_USER.username : '';
+
+    el.innerHTML = list.map(k => {
+      const canEdit = (role === 'SUPER_ADMIN' || role === 'ADMIN' || k.createdBy === username);
+      const totalRes = k.totalRes !== undefined ? k.totalRes : (parseInt(k.respondK)||0);
+      
+      let createdByText = k.createdBy || '-';
+      
+      const formatTgl = (tgl) => {
+        if (!tgl) return '-';
+        try {
+          const d = new Date(tgl);
+          if (isNaN(d.getTime())) return tgl;
+          return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch(e) { return tgl; }
+      };
+      
+      const tglStr = (k.tglMulai || k.tglAkhir) ? `${formatTgl(k.tglMulai)} s/d ${formatTgl(k.tglAkhir)}` : '-';
+
+      return `
+      <div class="kegiatan-card" onclick="Ev.bukaEvaluasi('${escJs(k.namaKegiatan)}')">
+        <div class="kegiatan-icon"><i class="ti ti-clipboard-list"></i></div>
+        <div style="flex:1;min-width:0;">
+          <div class="kegiatan-name">${escHtml(k.namaKegiatan)}</div>
+          <div class="kegiatan-meta">
+            Tim Kerja: ${escHtml(k.timKerja||'-')} &nbsp;·&nbsp; Tahun: ${escHtml(String(k.tahun||'-'))} &nbsp;·&nbsp; Pelaksanaan: ${tglStr}
+            <br>
+            ${totalRes} Responden &nbsp;·&nbsp; Oleh: ${escHtml(createdByText)}
+          </div>
+        </div>
+        <div class="kegiatan-actions" onclick="event.stopPropagation()">
+          <button class="btn-primary" style="padding:6px 12px;font-size:11px;background:var(--gs);" onclick="Ev.showQRModal('${escJs(k.namaKegiatan)}', '${escJs(k.kodeUnik)}')">
+            <i class="ti ti-qrcode"></i> QR Code Form
+          </button>
+          <button class="btn-secondary" style="padding:6px 12px;font-size:11px;" onclick="Ev.showResponden('${escJs(k.namaKegiatan)}')">
+            <i class="ti ti-users"></i> Statistik
+          </button>
+          <button class="btn-secondary" style="padding:6px 12px;font-size:11px;" onclick="Ev.bukaEvaluasi('${escJs(k.namaKegiatan)}')">
+            <i class="ti ti-chart-bar"></i> Analisis
+          </button>
+          ${canEdit ? `
+          <button class="btn-secondary" style="padding:6px 10px;font-size:11px;" onclick="Ev.editKegiatanModal('${escJs(k.namaKegiatan)}', '${escJs(k.timKerja||'')}', '${escJs(k.tahun||'')}', '${escJs(k.tglMulai||'')}', '${escJs(k.tglAkhir||'')}', '${escJs(k.tempat||'')}', '${escJs(k.penanggungjawab||'')}', '${escJs(k.narasumberList||'')}')">
+            <i class="ti ti-edit"></i>
+          </button>
+          <button class="btn-danger" style="padding:6px 10px;font-size:11px;" onclick="Ev.konfirmasiHapus('${escJs(k.namaKegiatan)}')">
+            <i class="ti ti-trash"></i>
+          </button>
+          ` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function showResponden(nama) {
+    const listEl = document.getElementById('responden-list-content');
+    if (!listEl) return;
+    listEl.innerHTML = '<div style="text-align:center; padding:20px;"><div class="spinner"></div> Memuat data...</div>';
+    document.getElementById('modal-responden').classList.remove('hidden');
+    
+    try {
+        const res = await fetch("https://168-110-208-72.nip.io/api/evaluasi/responden/" + encodeURIComponent(nama));
+        const json = await res.json();
+        if (json.success && json.data.length > 0) {
+            listEl.innerHTML = '<ul style="list-style:none; padding:0; margin:0; text-align:left;">' + 
+                json.data.map((r, i) => {
+                    const d = new Date(r.tgl_submit);
+                    const dtStr = d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID');
+                    const namaPeserta = r.nama_peserta ? r.nama_peserta : 'Anonim';
+                    return `<li style="padding: 10px; border-bottom: 1px solid var(--border);">
+                                <div style="font-weight:600;">${i+1}. ${escHtml(namaPeserta)}</div>
+                                <div style="font-size:11px; color:var(--text-muted);">${dtStr}</div>
+                            </li>`;
+                }).join('') + '</ul>';
+        } else {
+            listEl.innerHTML = '<div style="text-align:center; padding:20px;">Belum ada responden.</div>';
+        }
+    } catch(e) {
+        listEl.innerHTML = '<div style="color:red; text-align:center; padding:20px;">Gagal memuat data responden dari VM.</div>';
+    }
+  };
+
+  function filterKegiatan(q) {
+    const query  = (q || document.getElementById('inp-search-kegiatan').value || '').toLowerCase();
+    const tahunSel = document.getElementById('filter-tahun');
+    const tkSel = document.getElementById('filter-timkerja');
+    const tahun  = tahunSel ? tahunSel.value : '';
+    const tk     = tkSel ? tkSel.value : '';
+
+    let filtered = _kegiatan;
+    if (query)  filtered = filtered.filter(k => (k.namaKegiatan||'').toLowerCase().includes(query));
+    if (tahun)  filtered = filtered.filter(k => String(k.tahun) === tahun);
+    if (tk)     filtered = filtered.filter(k => (k.timKerja||'') === tk);
+
+    renderKegiatanList(filtered);
+  }
+
+  // ── BUKA EVALUASI ─────────────────────────────────────────
+  function bukaEvaluasi(nama) {
+    document.getElementById('eval-kegiatan-select').value = nama;
+    showView('evaluasi', document.getElementById('nav-evaluasi'));
+    loadEvaluasi(nama);
+  }
+
+  async function loadEvaluasi(nama) {
+    if (!nama) { document.getElementById('eval-content').classList.add('hidden'); return; }
+    _evalNama = nama;
+
+    // Spinner
+    document.getElementById('eval-content').classList.remove('hidden');
+    document.getElementById('eval-tab-k').innerHTML = '<div class="empty-state" style="padding:40px;"><div class="spinner" style="margin:auto;"></div></div>';
+
+    const r = await api('getDetailKegiatan', { namaKegiatan: nama });
+    if (!r.success) { toast(r.error || 'Gagal memuat data.', 'error'); return; }
+
+    _evalData = r.data;
+    evalTab('K', document.getElementById('stab-k'));
+  }
+
+  function evalTab(tipe, btn) {
+    ['K','S','N'].forEach(t => {
+      document.getElementById('eval-tab-' + t.toLowerCase()).classList.add('hidden');
+      document.getElementById('stab-' + t.toLowerCase()).classList.remove('active');
+    });
+    document.getElementById('eval-tab-' + tipe.toLowerCase()).classList.remove('hidden');
+    btn.classList.add('active');
+    if (!_evalData) return;
+    renderEvalTab(tipe);
+  }
+
+  function renderEvalTab(tipe) {
+    const el  = document.getElementById('eval-tab-' + tipe.toLowerCase());
+    const data = _evalData[tipe];
+
+    if (!data) {
+      el.innerHTML = `<div class="empty-state"><i class="ti ti-database-off"></i><p>Data ${tipe === 'K' ? 'Keterlaksanaan' : tipe === 'S' ? 'Sarana Prasarana' : 'Narasumber'} belum diimport untuk kegiatan ini.</p></div>`;
+      return;
+    }
+
+    if (tipe === 'K' || tipe === 'S') {
+      el.innerHTML = _renderSeksiKS(tipe, data);
+    } else {
+      el.innerHTML = _renderSeksiN(data);
+    }
+  }
+
+  function _renderSeksiKS(tipe, data) {
+    const labelTipe = tipe === 'K' ? 'Keterlaksanaan Kegiatan' : 'Sarana dan Prasarana';
+    const aspekRows = data.aspek.map((a, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>${escHtml(a.aspek)}</td>
+        <td style="text-align:center;">${a.dist[5]||0}</td>
+        <td style="text-align:center;">${a.dist[4]||0}</td>
+        <td style="text-align:center;">${a.dist[3]||0}</td>
+        <td style="text-align:center;">${a.dist[2]||0}</td>
+        <td style="text-align:center;">${a.dist[1]||0}</td>
+        <td style="text-align:center;font-weight:700;color:var(--gp);">${a.avg.toFixed(2)}</td>
+        <td><span class="badge badge-info">${escHtml(a.kategori)}</span></td>
+      </tr>`).join('');
+
+    const saranHtml = data.saranList && data.saranList.length > 0
+      ? data.saranList.map((s,i) => `<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--text2);">${i+1}. ${escHtml(s)}</div>`).join('')
+      : '<p style="font-size:12px;color:var(--text3);font-style:italic;">Tidak ada saran.</p>';
+
+    return `
+      <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:700;color:var(--gp);">${labelTipe} — ${escHtml(_evalNama)}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:13px;font-weight:600;color:var(--text2);">Rata-rata: <strong style="color:var(--gp);font-size:18px;">${data.avgTotal.toFixed(2)}</strong></span>
+          <span class="badge badge-success">${escHtml(data.kategori)}</span>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-bottom:20px;">
+        <table class="data-table">
+          <thead><tr>
+            <th>No</th><th>Aspek Penilaian</th>
+            <th>SB(5)</th><th>B(4)</th><th>CB(3)</th><th>KB(2)</th><th>SKB(1)</th>
+            <th>Rata-rata</th><th>Kategori</th>
+          </tr></thead>
+          <tbody>${aspekRows}</tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--gp);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+          <span><i class="ti ti-message-circle" style="margin-right:4px;"></i> Saran Peserta</span>
+          <button class="btn-primary" onclick="Ev.rangkumSaran('${tipe}')" id="btn-ai-${tipe}">
+            <i class="ti ti-sparkles"></i> Rangkum Saran (AI)
+          </button>
+        </div>
+        <div id="ai-result-${tipe}" style="display:none;margin-bottom:12px;"></div>
+        ${saranHtml}
+      </div>`;
+  }
+
+  function _renderSeksiN(data) {
+    const nsBlocks = data.perNS.map((ns, idx) => {
+      const rows = ns.aspek.map((a, i) => `
+        <tr>
+          <td>${i+1}</td><td>${escHtml(a.aspek)}</td>
+          <td style="text-align:center;">${a.dist[5]||0}</td>
+          <td style="text-align:center;">${a.dist[4]||0}</td>
+          <td style="text-align:center;">${a.dist[3]||0}</td>
+          <td style="text-align:center;">${a.dist[2]||0}</td>
+          <td style="text-align:center;">${a.dist[1]||0}</td>
+          <td style="text-align:center;font-weight:700;color:var(--gp);">${a.avg.toFixed(2)}</td>
+          <td><span class="badge badge-info">${escHtml(a.kategori)}</span></td>
+        </tr>`).join('');
+
+      const saranHtml = ns.saranList && ns.saranList.length > 0
+        ? ns.saranList.map((s, i) => `<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--text2);">${i+1}. ${escHtml(s)}</div>`).join('')
+        : '<p style="font-size:12px;color:var(--text3);font-style:italic;">Tidak ada saran.</p>';
+
+      return `
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:14px;font-weight:700;color:var(--gp);">${idx+1}. ${escHtml(ns.narasumber)}</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span style="font-size:13px;font-weight:600;color:var(--text2);">Rata-rata: <strong style="color:var(--gp);">${ns.avgTotal.toFixed(2)}</strong></span>
+              <span class="badge badge-success">${escHtml(ns.kategori)}</span>
+            </div>
+          </div>
+          <div class="table-wrap" style="margin-bottom:14px;">
+            <table class="data-table">
+              <thead><tr>
+                <th>No</th><th>Aspek</th>
+                <th>SB(5)</th><th>B(4)</th><th>CB(3)</th><th>KB(2)</th><th>SKB(1)</th>
+                <th>Rata-rata</th><th>Kategori</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+            <span><i class="ti ti-message-circle" style="margin-right:4px;"></i> Saran Peserta</span>
+            <button class="btn-primary" onclick="Ev.rangkumSaran('N', '${escHtml(ns.narasumber)}')" id="btn-ai-N-${idx}" style="padding:4px 8px;font-size:11px;">
+              <i class="ti ti-sparkles"></i> Rangkum Saran (AI)
+            </button>
+          </div>
+          <div id="ai-result-N-${idx}" style="display:none;margin-bottom:12px;"></div>
+          ${saranHtml}
+        </div>`;
+    });
+
+    return `
+      <div style="font-size:14px;font-weight:700;color:var(--gp);margin-bottom:16px;">Evaluasi Narasumber — ${escHtml(_evalNama)}</div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 20px;margin-bottom:16px;display:flex;gap:16px;align-items:center;">
+        <div style="font-size:13px;color:var(--text2);">Grand Total Rata-rata:</div>
+        <div style="font-size:20px;font-weight:800;color:var(--gp);">${data.avgGrand.toFixed(2)}</div>
+        <span class="badge badge-success">${escHtml(data.kategori)}</span>
+      </div>
+      ${nsBlocks.join('')}`;
+  }
+
+  function formatAIToHTML(text) {
+    if (!text) return '';
+    const lines = text.split('\n');
+    let html = '<ol style="padding-left: 20px; margin: 0; display:flex; flex-direction:column; gap:6px; font-family: inherit;">';
+    lines.forEach(line => {
+      line = line.trim();
+      if (line) {
+        line = line.replace(/^\d+[\.\)]\s*/, '').replace(/^[-*]\s+/, '');
+        let escapedLine = escHtml(line);
+        escapedLine = escapedLine.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        html += `<li>${escapedLine}</li>`;
+      }
+    });
+    html += '</ol>';
+    return html;
+  }
+
+  // ── RANGKUM SARAN DENGAN AI ───────────────────────────────
+  async function rangkumSaran(tipe, namaNarasumber) {
+    const idx = namaNarasumber
+      ? (_evalData && _evalData.N ? _evalData.N.perNS.findIndex(ns => ns.narasumber === namaNarasumber) : -1)
+      : -1;
+    const btnId    = tipe === 'N' ? 'btn-ai-N-' + idx    : 'btn-ai-' + tipe;
+    const resultId = tipe === 'N' ? 'ai-result-N-' + idx : 'ai-result-' + tipe;
+
+    const btn    = document.getElementById(btnId);
+    const resEl  = document.getElementById(resultId);
+    if (!btn || !resEl) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Sedang merangkum...';
+    resEl.style.display = 'none';
+
+    const r = await api('rangkumSaran', {
+      namaKegiatan  : _evalNama,
+      tipe          : tipe,
+      namaNarasumber: namaNarasumber || null,
+    });
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-sparkles"></i> Rangkum Ulang (AI)';
+
+    if (!r.success) {
+      toast(r.error || 'Gagal merangkum saran.', 'error');
+      resEl.style.display = 'none';
+      return;
+    }
+
+    resEl.style.display = 'block';
+    resEl.innerHTML = `
+      <div class="ai-result" id="ai-text-${btnId}"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center;font-size:11px;color:var(--text3);">
+        <span>${r.jumlahSaran} saran dirangkum</span>
+      </div>`;
+
+    if (!window.aiIntervals) window.aiIntervals = {};
+    if (window.aiIntervals[btnId]) clearInterval(window.aiIntervals[btnId]);
+
+    const textEl = document.getElementById(`ai-text-${btnId}`);
+    const text = r.ringkasan || '';
+    
+    textEl.innerHTML = formatAIToHTML(text);
+
+    toast('Ringkasan AI berhasil dibuat!', 'success');
+  }
+
+  // ── UNDUH DATA MENTAH (XLSX) ──────────────────────────────
+  async function downloadXLSX() {
+    const namaKegiatan = document.getElementById('lap-kegiatan-select').value;
+    if (!namaKegiatan) {
+      toast('Silakan pilih kegiatan terlebih dahulu!', 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('btn-gen-csv');
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></div> Mengunduh XLSX...';
+
+    try {
+      const url = `https://168-110-208-72.nip.io/api/evaluasi/rekap/${encodeURIComponent(namaKegiatan)}`;
+      const response = await fetch(url);
+      const resData = await response.json();
+
+      if (!resData.success) {
+        throw new Error(resData.error || 'Gagal mengambil data rekap dari server.');
+      }
+
+      const allData = Array.isArray(resData.data) ? resData.data : [];
+      const dataK = allData.filter(d => d.tipe_evaluasi === 'K');
+      const dataS = allData.filter(d => d.tipe_evaluasi === 'S');
+      const dataN = allData.filter(d => d.tipe_evaluasi === 'N');
+
+      const wb = XLSX.utils.book_new();
+
+      if (dataK.length > 0) {
+        const wsK = XLSX.utils.json_to_sheet(dataK);
+        XLSX.utils.book_append_sheet(wb, wsK, "Keterlaksanaan (K)");
+      }
+      if (dataS.length > 0) {
+        const wsS = XLSX.utils.json_to_sheet(dataS);
+        XLSX.utils.book_append_sheet(wb, wsS, "Sarana Prasarana (S)");
+      }
+      if (dataN.length > 0) {
+        const wsN = XLSX.utils.json_to_sheet(dataN);
+        XLSX.utils.book_append_sheet(wb, wsN, "Narasumber (N)");
+      }
+
+      if (dataK.length === 0 && dataS.length === 0 && dataN.length === 0) {
+        const wsEmpty = XLSX.utils.json_to_sheet([{ Info: "Tidak ada data evaluasi untuk kegiatan ini." }]);
+        XLSX.utils.book_append_sheet(wb, wsEmpty, "Data Kosong");
+      }
+
+      XLSX.writeFile(wb, `RawData_${namaKegiatan}.xlsx`);
+
+      toast('Data mentah (XLSX) berhasil diunduh!', 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldHtml;
+    }
+  }
+
+
+
+  // "?"? GENERATE LAPORAN "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+  async function generateLaporanDocs() {
+    const nama = document.getElementById('lap-kegiatan-select').value;
+    if (!nama) { toast('Pilih kegiatan terlebih dahulu.', 'error'); return; }
+
+    const btn = document.getElementById('btn-gen-lap');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:var(--ga);"></div> Memproses...';
+
+    let cbAI = document.getElementById('cb-ai-all');
+    let ringkasanAI = null;
+    const container = document.getElementById('ai-summary-container');
+    const content = document.getElementById('ai-summary-content');
+
+    if (cbAI && cbAI.checked) {
+      if (container && container.style.display === 'block' && content && content.dataset.raw) {
+        // Re-use text yang sudah di-generate di layar jika kotak dicentang
+        ringkasanAI = content.dataset.raw;
+      } else {
+        toast('Sedang merangkum seluruh saran dengan AI. Mohon tunggu...', 'info');
+        const ai = await api('rangkumSemuaSaran', { namaKegiatan: nama });
+        
+        if (ai.success) {
+          ringkasanAI = ai.ringkasan;
+          container.style.display = 'block';
+          content.dataset.raw = ringkasanAI;
+          content.innerHTML = formatAIToHTML(ringkasanAI);
+        } else {
+          if (ai.fallbackText) {
+            toast('AI terkendala. Menampilkan seluruh saran secara langsung.', 'info');
+            ringkasanAI = ai.fallbackText;
+            container.style.display = 'block';
+            content.dataset.raw = ringkasanAI;
+            content.innerHTML = formatAIToHTML(ringkasanAI);
+          } else if (ai.error && ai.error.includes("Tidak ada saran")) {
+            ringkasanAI = "Tidak ada saran yang diberikan oleh responden.";
+            container.style.display = 'block';
+            content.dataset.raw = ringkasanAI;
+            content.innerHTML = formatAIToHTML(ringkasanAI);
+          } else {
+            toast('AI Gagal: ' + ai.error, 'error');
+          }
+        }
+      }
+    }
+
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:var(--ga);"></div> Membuat File DOCX...';
+    toast('Membuat dokumen dari template, mohon tunggu...', 'info');
+
+    const r = await api('generateLaporanDocs', { namaKegiatan: nama, ringkasanAI: ringkasanAI });
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-file-text"></i> Generate Laporan';
+
+    if (!r.success) { 
+      toast(r.error || 'Gagal membuat file DOCX.', 'error'); 
+      return; 
+    }
+    
+    toast('Berhasil! File Laporan DOCX Anda sedang diunduh.', 'success');
+    if (r.base64) {
+      const a = document.createElement('a');
+      a.href = 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,' + r.base64;
+      a.download = r.filename || 'Laporan_Evaluasi.docx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }
+
+  async function generateOnlyRingkasanAI() {
+    const nama = document.getElementById('lap-kegiatan-select').value;
+    if (!nama) { toast('Pilih kegiatan terlebih dahulu.', 'error'); return; }
+    
+    const cbAI = document.getElementById('cb-ai-all');
+    const isAIChecked = cbAI && cbAI.checked;
+
+    const btn = document.getElementById('btn-gen-ai-only');
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border:2px solid rgba(0,0,0,0.3);border-top-color:var(--text);"></div> Memproses...';
+    
+    let ai;
+    if (isAIChecked) {
+      toast('Sedang merangkum seluruh saran dengan AI. Mohon tunggu...', 'info');
+      ai = await api('rangkumSemuaSaran', { namaKegiatan: nama });
+    } else {
+      toast('Menarik seluruh saran dari sistem...', 'info');
+      ai = await api('getSemuaSaranMentah', { namaKegiatan: nama });
+    }
+    
+    btn.disabled = false;
+    btn.innerHTML = oldHtml;
+
+    const container = document.getElementById('ai-summary-container');
+    const content = document.getElementById('ai-summary-content');
+    
+    if (ai.success) {
+      container.style.display = 'block';
+      const resultText = isAIChecked ? ai.ringkasan : ai.text;
+      content.dataset.raw = resultText;
+      content.innerHTML = formatAIToHTML(resultText);
+      toast(isAIChecked ? 'Berhasil membuat ringkasan AI!' : 'Berhasil menampilkan seluruh saran!', 'success');
+    } else {
+      let text = '';
+      if (ai.fallbackText) {
+        toast('AI terkendala. Menampilkan seluruh saran secara langsung.', 'info');
+        text = ai.fallbackText;
+      } else if (ai.error && ai.error.includes("Tidak ada saran")) {
+        text = "Tidak ada saran yang diberikan oleh responden.";
+      } else {
+        toast('Gagal: ' + ai.error, 'error');
+        return;
+      }
+      container.style.display = 'block';
+      content.dataset.raw = text;
+      content.innerHTML = formatAIToHTML(text);
+    }
+  }
+
+
+
+  // ── ADMIN TIM KERJA ───────────────────────────────────────
+  async function loadAdminTimKerja() {
+    const r = await api('getTimKerjaAdmin');
+    if (r.success) {
+      _adminTimKerjaList = r.data || [];
+      renderAdminTimKerja();
+      
+      // Update dropdown Tim Kerja di modal kegiatan dan filter
+      const opts = '<option value="">Semua Tim Kerja</option>' + _adminTimKerjaList.map(tk => `<option value="${escHtml(tk)}">${escHtml(tk)}</option>`).join('');
+      const filterTimKerja = document.getElementById('filter-timkerja');
+      if(filterTimKerja) filterTimKerja.innerHTML = opts;
+
+      const mdlKegTimKerja = document.getElementById('mdl-keg-timkerja');
+      if(mdlKegTimKerja) mdlKegTimKerja.innerHTML = '<option value="">-- Pilih --</option>' + _adminTimKerjaList.map(tk => `<option value="${escHtml(tk)}">${escHtml(tk)}</option>`).join('');
+    }
+  }
+
+  function renderAdminTimKerja() {
+    const tbody = document.getElementById('admin-timkerja-tbody');
+    if (!tbody) return;
+    if (!_adminTimKerjaList.length) {
+      tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--text3); font-size:13px;">Belum ada tim kerja terdaftar.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = _adminTimKerjaList.map(tk => `
+      <tr>
+        <td style="padding:12px; font-weight:600;">${escHtml(tk)}</td>
+        <td style="padding:12px; text-align:right;">
+          <div style="display:flex; justify-content:flex-end; gap:6px;">
+            <button class="btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="Ev.editAdminTimKerja('${escJs(tk)}')"><i class="ti ti-edit"></i></button>
+            <button class="btn-danger" style="padding:4px 8px; font-size:12px;" onclick="Ev.deleteAdminTimKerja('${escJs(tk)}')"><i class="ti ti-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function showAdminTimKerjaModal() {
+    document.getElementById('mdl-tk-title').textContent = 'Tambah Tim Kerja';
+    document.getElementById('mdl-tk-oldnama').value = '';
+    document.getElementById('mdl-tk-nama').value = '';
+    document.getElementById('modal-admin-timkerja').classList.remove('hidden');
+  }
+
+  function editAdminTimKerja(nama) {
+    document.getElementById('mdl-tk-title').textContent = 'Edit Tim Kerja';
+    document.getElementById('mdl-tk-oldnama').value = nama;
+    document.getElementById('mdl-tk-nama').value = nama;
+    document.getElementById('modal-admin-timkerja').classList.remove('hidden');
+  }
+
+  async function saveAdminTimKerja() {
+    const oldNama = document.getElementById('mdl-tk-oldnama').value;
+    const newNama = document.getElementById('mdl-tk-nama').value.trim();
+    if (!newNama) return toast('Nama tim kerja harus diisi.', 'error');
+    
+    closeModal('modal-admin-timkerja');
+    const action = oldNama ? 'editTimKerja' : 'addTimKerja';
+    const r = await api(action, { oldNama, newNama: newNama, nama: newNama });
+    if (r.success) {
+      toast(r.message, 'success');
+      await loadAdminTimKerja();
+    } else {
+      toast(r.error || 'Gagal menyimpan.', 'error');
+    }
+  }
+
+  async function deleteAdminTimKerja(nama) {
+    if (!confirm('Hapus Tim Kerja "' + nama + '"?')) return;
+    const r = await api('deleteTimKerja', { nama });
+    if (r.success) {
+      toast(r.message, 'success');
+      await loadAdminTimKerja();
+    } else {
+      toast(r.error || 'Gagal menghapus.', 'error');
+    }
+  }
+
+  // ── MANAJEMEN KEGIATAN ─────────────────────────────────────
+  function showKegiatanModal() {
+    document.getElementById('mdl-keg-title').textContent = 'Tambah Kegiatan';
+    document.getElementById('mdl-keg-oldnama').value = '';
+    document.getElementById('mdl-keg-nama').value = '';
+    document.getElementById('mdl-keg-tahun').value = new Date().getFullYear();
+    document.getElementById('mdl-keg-timkerja').value = '';
+    const elMulai = document.getElementById('mdl-keg-tglmulai');
+    const elAkhir = document.getElementById('mdl-keg-tglakhir');
+    if (elMulai._flatpickr) elMulai._flatpickr.clear(); else elMulai.value = '';
+    if (elAkhir._flatpickr) elAkhir._flatpickr.clear(); else elAkhir.value = '';
+    document.getElementById('mdl-keg-tempat').value = '';
+    document.getElementById('mdl-keg-penanggungjawab').value = '';
+    document.getElementById('mdl-keg-narasumber').value = '';
+    document.getElementById('modal-kegiatan').classList.remove('hidden');
+  }
+
+  function editKegiatanModal(oldNama, timKerja, tahun, tglMulai, tglAkhir, tempat, penanggungjawab, narasumberList) {
+    document.getElementById('mdl-keg-title').textContent = 'Edit Kegiatan';
+    document.getElementById('mdl-keg-oldnama').value = oldNama;
+    document.getElementById('mdl-keg-nama').value = oldNama;
+    document.getElementById('mdl-keg-tahun').value = tahun || new Date().getFullYear();
+    document.getElementById('mdl-keg-timkerja').value = timKerja || '';
+    
+    const formatInputDate = (d) => {
+      if (!d) return '';
+      try {
+        const dateObj = new Date(d);
+        if (isNaN(dateObj)) return '';
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      } catch(e) { return ''; }
+    };
+    const elMulai = document.getElementById('mdl-keg-tglmulai');
+    const elAkhir = document.getElementById('mdl-keg-tglakhir');
+    const fm = formatInputDate(tglMulai);
+    const fa = formatInputDate(tglAkhir);
+    if (elMulai._flatpickr) elMulai._flatpickr.setDate(fm); else elMulai.value = fm;
+    if (elAkhir._flatpickr) elAkhir._flatpickr.setDate(fa); else elAkhir.value = fa;
+    document.getElementById('mdl-keg-tempat').value = tempat || '';
+    document.getElementById('mdl-keg-penanggungjawab').value = penanggungjawab || '';
+    document.getElementById('mdl-keg-narasumber').value = narasumberList || '';
+    document.getElementById('modal-kegiatan').classList.remove('hidden');
+  }
+
+  async function saveKegiatan() {
+    const oldNama     = document.getElementById('mdl-keg-oldnama').value;
+    const newNama     = document.getElementById('mdl-keg-nama').value.trim();
+    const newTahun    = document.getElementById('mdl-keg-tahun').value.trim();
+    const newTimKerja = document.getElementById('mdl-keg-timkerja').value;
+    const tglMulai    = document.getElementById('mdl-keg-tglmulai').value;
+    const tglAkhir    = document.getElementById('mdl-keg-tglakhir').value;
+    const tempat      = document.getElementById('mdl-keg-tempat').value.trim();
+    const penanggungjawab = document.getElementById('mdl-keg-penanggungjawab').value.trim();
+    const narasumberList = document.getElementById('mdl-keg-narasumber').value.trim();
+    
+    if (!newNama) return toast('Nama kegiatan wajib diisi.', 'error');
+
+    const action = oldNama ? 'editKegiatan' : 'addKegiatan';
+    const payload = oldNama ? 
+      { oldNama, newNama, newTimKerja, newTahun, tglMulai, tglAkhir, tempat, penanggungjawab, narasumberList } : 
+      { namaKegiatan: newNama, timKerja: newTimKerja, tahun: newTahun, tglMulai, tglAkhir, tempat, penanggungjawab, narasumberList };
+
+    const btn = document.getElementById('btn-save-kegiatan');
+    if(btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;border-top-color:var(--gp);"></div> Menyimpan...';
+    }
+
+    const r = await api(action, payload);
+    
+    if(btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-device-floppy"></i> Simpan';
+    }
+
+    if (r.success) {
+      closeModal('modal-kegiatan');
+      toast(r.message, 'success');
+      await loadKegiatanList();
+      renderDashboard();
+    } else {
+      toast(r.error || 'Gagal menyimpan.', 'error');
+    }
+  }
+
+  // ── MODAL QR CODE ───────────────────────────────────────
+  let _qrCurrentKegiatan = '';
+  let _qrCurrentCode = '';
+
+  function showQRModal(nama, kodeUnik) {
+    _qrCurrentKegiatan = nama;
+    _qrCurrentCode = kodeUnik;
+    document.getElementById('qr-kegiatan-title').textContent = nama;
+    document.getElementById('modal-qr').classList.remove('hidden');
+    generateQR();
+  }
+
+  function generateQR() {
+    const container = document.getElementById('qrcode-container');
+    container.innerHTML = '';
+    
+    // Gunakan kode unik jika ada, fallback ke nama kegiatan
+    const url = _qrCurrentCode 
+      ? `https://168-110-208-72.nip.io/evaluasi.html?c=${encodeURIComponent(_qrCurrentCode)}`
+      : `https://168-110-208-72.nip.io/evaluasi.html?kegiatan=${encodeURIComponent(_qrCurrentKegiatan)}`;
+    
+    document.getElementById('qr-link-text').innerHTML = `<a href="${url}" target="_blank" style="color:var(--gs); text-decoration:underline;">${url}</a>`;
+    
+    new QRCode(container, {
+      text: url,
+      width: 1024,
+      height: 1024,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H
+    });
+
+    // Sesuaikan ukuran tampilan di modal agar tidak menutupi layar
+    setTimeout(() => {
+      const cvs = container.querySelector('canvas');
+      const img = container.querySelector('img');
+      if (cvs) { cvs.style.width = '200px'; cvs.style.height = '200px'; }
+      if (img) { img.style.width = '200px'; img.style.height = '200px'; }
+    }, 50);
+  }
+
+  function salinLink() {
+    const url = _qrCurrentCode 
+      ? `https://168-110-208-72.nip.io/evaluasi.html?c=${encodeURIComponent(_qrCurrentCode)}`
+      : `https://168-110-208-72.nip.io/evaluasi.html?kegiatan=${encodeURIComponent(_qrCurrentKegiatan)}`;
+    navigator.clipboard.writeText(url).then(() => {
+      toast('Link berhasil disalin!', 'success');
+    }).catch(err => {
+      toast('Gagal menyalin link.', 'error');
+    });
+  }
+
+  function downloadQR() {
+    const canvas = document.querySelector('#qrcode-container canvas');
+    if (canvas) {
+      // Pastikan background putih untuk JPEG
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const ctx = tempCanvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      ctx.drawImage(canvas, 0, 0);
+
+      const a = document.createElement('a');
+      a.href = tempCanvas.toDataURL('image/jpeg', 1.0);
+      a.download = `QR_Code_${_qrCurrentCode || _qrCurrentKegiatan}.jpg`;
+      a.click();
+    } else {
+      toast('QR Code belum dimuat.', 'warning');
+    }
+  }
+
+  function fullscreenQR() {
+    const canvas = document.querySelector('#qrcode-container canvas');
+    if (!canvas) return toast('QR Code belum dimuat.', 'warning');
+
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.backgroundColor = 'white';
+    overlay.style.zIndex = '9999';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    
+    const title = document.createElement('h2');
+    title.textContent = _qrCurrentKegiatan;
+    title.style.marginBottom = '30px';
+    title.style.color = 'var(--gp)';
+    title.style.textAlign = 'center';
+    title.style.padding = '0 20px';
+
+    const img = document.createElement('img');
+    
+    // Pastikan background putih untuk JPEG
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const ctx = tempCanvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    img.src = tempCanvas.toDataURL('image/jpeg', 1.0);
+    img.style.maxWidth = '90vmin';
+    img.style.maxHeight = '80vmin';
+    img.style.objectFit = 'contain';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn-danger';
+    closeBtn.innerHTML = '<i class="ti ti-x"></i> Tutup Fullscreen';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '20px';
+    closeBtn.style.right = '20px';
+    closeBtn.onclick = () => document.body.removeChild(overlay);
+
+    overlay.appendChild(closeBtn);
+    overlay.appendChild(title);
+    overlay.appendChild(img);
+    document.body.appendChild(overlay);
+  }
+
+  // ── HAPUS KEGIATAN ────────────────────────────────────────
+  function konfirmasiHapus(nama) {
+    document.getElementById('confirm-hapus-msg').textContent = `Hapus semua data untuk: "${nama}"? Tindakan ini tidak dapat dibatalkan.`;
+    document.getElementById('modal-confirm-hapus').classList.remove('hidden');
+    document.getElementById('btn-confirm-hapus').onclick = () => hapusKegiatan(nama);
+  }
+
+  async function hapusKegiatan(nama) {
+    closeModal('modal-confirm-hapus');
+    const r = await api('deleteKegiatan', { namaKegiatan: nama });
+    if (r.success) {
+      toast('Kegiatan berhasil dihapus.', 'success');
+      await loadKegiatanList();
+      renderDashboard();
+    } else {
+      toast(r.error || 'Gagal menghapus.', 'error');
+    }
+  }
+
+  // ── ADMIN INSTRUMEN ───────────────────────────────────────
+  let _adminInstrumenData = { K: [], S: [], N: [] };
+
+  async function loadAdminInstrumen() {
+    const tbody = document.getElementById('admin-instrumen-tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text3); font-size:13px;">Memuat data...</td></tr>';
+    
+    const r = await api('getInstrumenAdmin');
+    if (r.success && r.data) {
+      _adminInstrumenData = Object.assign({ K: [], S: [], N: [] }, r.data);
+    } else {
+      toast(r.error || 'Gagal memuat instrumen.', 'error');
+    }
+    renderAdminInstrumen();
+  }
+
+  function renderAdminInstrumen() {
+    const tipe = document.getElementById('sel-instrumen-tipe').value || 'K';
+    const tbody = document.getElementById('admin-instrumen-tbody');
+    if (!tbody) return;
+    const list = _adminInstrumenData[tipe] || [];
+    
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text3); font-size:13px;">Belum ada pertanyaan.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = list.map((item, idx) => `
+      <tr>
+        <td style="padding:12px; text-align:center;">${idx + 1}</td>
+        <td style="padding:12px;">
+          <input type="text" class="form-input instrumen-item" data-idx="${idx}" value="${escHtml(item)}" placeholder="Masukkan pertanyaan..." style="width:100%; border:1px solid #ddd; border-radius:4px; padding:6px 10px; font-size:13px;" onchange="Ev.updatePernyataanInstrumen(${idx}, this.value)" />
+        </td>
+        <td style="padding:12px; text-align:center;">
+          <button class="btn-danger" style="padding:4px 8px; font-size:12px;" onclick="Ev.hapusPernyataanInstrumen(${idx})"><i class="ti ti-trash"></i></button>
+        </td>
+      </tr>
+    `).join('');
+  }
+  
+  function updatePernyataanInstrumen(idx, val) {
+    const tipe = document.getElementById('sel-instrumen-tipe').value || 'K';
+    _adminInstrumenData[tipe][idx] = val;
+  }
+
+  function tambahPernyataanInstrumen() {
+    const tipe = document.getElementById('sel-instrumen-tipe').value || 'K';
+    _adminInstrumenData[tipe].push('');
+    renderAdminInstrumen();
+  }
+
+  function hapusPernyataanInstrumen(idx) {
+    const tipe = document.getElementById('sel-instrumen-tipe').value || 'K';
+    _adminInstrumenData[tipe].splice(idx, 1);
+    renderAdminInstrumen();
+  }
+
+  async function simpanAdminInstrumen() {
+    const tipe = document.getElementById('sel-instrumen-tipe').value || 'K';
+    const inputs = document.querySelectorAll('.instrumen-item');
+    const newList = [];
+    inputs.forEach(input => {
+      if (input.value.trim()) newList.push(input.value.trim());
+    });
+    
+    _adminInstrumenData[tipe] = newList;
+    
+    const btn = event.currentTarget;
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;border-top-color:var(--gp);"></div> Menyimpan...';
+    
+    const r = await api('saveInstrumenAdmin', { tipe_evaluasi: tipe, pertanyaan_json: newList });
+    
+    btn.disabled = false;
+    btn.innerHTML = oldHtml;
+    
+    if (r.success) {
+      toast(r.message || 'Berhasil disimpan.', 'success');
+      renderAdminInstrumen();
+    } else {
+      toast(r.error || 'Gagal menyimpan instrumen.', 'error');
+    }
+  }
+
+  // ── UTILITAS ──────────────────────────────────────────────
+  async function logout()          { 
+    const btn = document.getElementById('btnLogout');
+    if (btn) {
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px; width: 14px; height: 14px; color: #FFEB3B;"></span> Menuju Portal...';
+      btn.style.pointerEvents = 'none';
+      btn.style.opacity = '0.8';
+    }
+    await api('logout'); window.top.location.href = <%- JSON.stringify(portalUrl || '') %>; 
+  }
+  async function refresh()         { 
+    await loadKegiatanList(); 
+    if(SSO_USER && (SSO_USER.role === 'ADMIN' || SSO_USER.role === 'SUPER_ADMIN')) await loadAdminTimKerja();
+    renderDashboard(); 
+    toast('Data diperbarui.', 'info'); 
+  }
+
+  return {
+    init, showView, loadEvaluasi, evalTab, rangkumSaran,
+    filterKegiatan, bukaEvaluasi, konfirmasiHapus,
+    generateLaporanDocs, generateOnlyRingkasanAI, downloadXLSX,
+    logout, refresh,
+    showQRModal, generateQR, salinLink, downloadQR, fullscreenQR,
+    loadAdminTimKerja, showAdminTimKerjaModal, editAdminTimKerja, saveAdminTimKerja, deleteAdminTimKerja,
+    showKegiatanModal, editKegiatanModal, saveKegiatan, showResponden,
+    loadAdminInstrumen, renderAdminInstrumen, tambahPernyataanInstrumen, hapusPernyataanInstrumen, simpanAdminInstrumen, updatePernyataanInstrumen
+  };
+})();
+
+// ── GLOBAL HELPERS ─────────────────────────────────────────
+function toggleSidebar(forceClose) {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  if (!sb || !ov) return;
+  if (forceClose === true) {
+    sb.classList.remove('open');
+    ov.style.display = 'none';
+  } else {
+    const isOp = sb.classList.toggle('open');
+    ov.style.display = isOp ? 'block' : 'none';
+  }
+}
+
+function showView(viewId, navEl) {
+  document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + viewId).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  if(window.innerWidth <= 768) toggleSidebar(true);
+
+  if (viewId === 'instrumen') {
+    Ev.loadAdminInstrumen();
+  } else if (viewId === 'laporan') {
+    const lapSel = document.getElementById('lap-kegiatan-select');
+    if (lapSel) lapSel.value = '';
+    const aiCont = document.getElementById('ai-summary-container');
+    if (aiCont) aiCont.style.display = 'none';
+  }
+}
+
+function closeModal(id)     { document.getElementById(id).classList.add('hidden'); }
+function showToast(msg, type) {
+  const icons = { success:'ti-check', error:'ti-alert-circle', info:'ti-info-circle', warning:'ti-alert-triangle' };
+  const el = document.createElement('div');
+  el.className = 'gaspol-toast toast-' + (type||'info');
+  el.innerHTML = `<i class="ti ${icons[type]||'ti-info-circle'}"></i> ${msg}`;
+  document.getElementById('toast-wrap').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+function toast(msg, type) { showToast(msg, type); } // alias backward compat
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escJs(s)   { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+window.onerror = function(msg, src, line, col, err) {
+  document.getElementById('loading').innerHTML = '<div style="background:red;padding:20px;color:white;border-radius:8px;"><b>Error JS:</b><br>' + msg + '<br>Line: ' + line + '</div>';
+  document.getElementById('loading').style.display = 'flex';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  document.getElementById('loading').innerHTML = '<div style="background:red;padding:20px;color:white;border-radius:8px;"><b>Promise Error:</b><br>' + (e.reason && e.reason.message ? e.reason.message : e.reason) + '</div>';
+  document.getElementById('loading').style.display = 'flex';
+});
+
+window.addEventListener('load', () => {
+  Ev.init();
+});
+</script>
+
+</body>
+</html>
