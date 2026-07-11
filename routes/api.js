@@ -6,6 +6,9 @@ const laporanController = require('../controllers/laporanController');
 const rekapController = require('../controllers/rekapController');
 const dbSSO = require('../config/db_sso');
 
+const ssoCache = new Map();
+const CACHE_TTL = 3 * 60 * 1000;
+
 const VM_API_BASE = 'http://127.0.0.1:3000/api/evaluasi';
 axios.defaults.headers.common['x-api-key'] = process.env.API_KEY || 'gaspol_secret_key_2026';
 
@@ -23,21 +26,29 @@ router.post('/action', async (req, res) => {
   if (!token) {
     return res.status(401).json({ success: false, error: 'Autentikasi diperlukan. Token tidak ditemukan.' });
   }
-  try {
-    const [sessions] = await dbSSO.query('SELECT userId FROM Sessions WHERE token = ? AND isValid = 1 AND expiresAt > NOW() LIMIT 1', [token]);
-    if (sessions.length === 0) {
-      return res.status(401).json({ success: false, error: 'Sesi telah berakhir. Silakan login kembali.' });
+  
+  const now = Date.now();
+  if (ssoCache.has(token) && now - ssoCache.get(token).ts < CACHE_TTL) {
+    data.user = ssoCache.get(token).user;
+  } else {
+    try {
+      const [sessions] = await dbSSO.query('SELECT userId FROM Sessions WHERE token = ? AND isValid = 1 AND expiresAt > NOW() LIMIT 1', [token]);
+      if (sessions.length === 0) {
+        return res.status(401).json({ success: false, error: 'Sesi telah berakhir. Silakan login kembali.' });
+      }
+      
+      const [users] = await dbSSO.query('SELECT userId, username, fullName, role, status FROM Users WHERE userId = ? LIMIT 1', [sessions[0].userId]);
+      if (users.length === 0 || users[0].status !== 'ACTIVE') {
+        return res.status(401).json({ success: false, error: 'Akun Anda tidak aktif atau tidak valid.' });
+      }
+      
+      data.user = users[0];
+      ssoCache.set(token, { user: users[0], ts: now });
+      if (ssoCache.size > 1000) ssoCache.delete(ssoCache.keys().next().value);
+    } catch (err) {
+      console.error('SSO DB Error:', err);
+      return res.status(500).json({ success: false, error: 'Gagal memverifikasi token sesi.' });
     }
-    
-    const [users] = await dbSSO.query('SELECT userId, username, fullName, role, status FROM Users WHERE userId = ? LIMIT 1', [sessions[0].userId]);
-    if (users.length === 0 || users[0].status !== 'ACTIVE') {
-      return res.status(401).json({ success: false, error: 'Akun Anda tidak aktif atau tidak valid.' });
-    }
-    
-    data.user = users[0];
-  } catch (err) {
-    console.error('SSO DB Error:', err);
-    return res.status(500).json({ success: false, error: 'Gagal memverifikasi token sesi.' });
   }
   // ---------------------
   

@@ -1782,7 +1782,7 @@ const Ev = (() => {
       btn.style.pointerEvents = 'none';
       btn.style.opacity = '0.8';
     }
-    await api('logout'); window.top.location.href = <%- JSON.stringify(portalUrl || '') %>; 
+    window.top.location.href = <%- JSON.stringify(portalUrl || '') %>; 
   }
   async function refresh()         { 
     await loadKegiatanList(); 
