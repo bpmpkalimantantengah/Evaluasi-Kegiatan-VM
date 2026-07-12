@@ -255,16 +255,8 @@ nav.sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
 <!-- ── Toast ───────────────────────────────────────────────── -->
 <div id="toast-wrap" aria-live="polite"></div>
 
-<!-- ── Loading ─────────────────────────────────────────────── -->
-<div id="loading">
-  <div class="logo-text">EVALUASI</div>
-  <div class="logo-sub">BPMP KALIMANTAN TENGAH</div>
-  <div class="spinner"></div>
-  <div id="loading-text" style="color:var(--text2);margin-top:16px;font-size:13px;font-weight:600;">Memuat aplikasi...</div>
-</div>
-
 <!-- ── APP SHELL ────────────────────────────────────────────── -->
-<div id="app" class="hidden">
+<div id="app">
 
   <!-- SIDEBAR -->
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
@@ -730,9 +722,6 @@ const Ev = (() => {
       console.error('Init error:', err);
       toast('Terjadi kesalahan saat memuat aplikasi: ' + err.message, 'error');
     } finally {
-      document.getElementById('loading').style.display = 'none';
-      const appEl = document.getElementById('app');
-      if (appEl) appEl.classList.remove('hidden');
       console.log('Init finished.');
     }
   }
@@ -1848,12 +1837,10 @@ function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&
 function escJs(s)   { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
 
 window.onerror = function(msg, src, line, col, err) {
-  document.getElementById('loading').innerHTML = '<div style="background:red;padding:20px;color:white;border-radius:8px;"><b>Error JS:</b><br>' + msg + '<br>Line: ' + line + '</div>';
-  document.getElementById('loading').style.display = 'flex';
+  console.error('Error JS:', msg, 'Line:', line);
 };
 window.addEventListener('unhandledrejection', function(e) {
-  document.getElementById('loading').innerHTML = '<div style="background:red;padding:20px;color:white;border-radius:8px;"><b>Promise Error:</b><br>' + (e.reason && e.reason.message ? e.reason.message : e.reason) + '</div>';
-  document.getElementById('loading').style.display = 'flex';
+  console.error('Promise Error:', (e.reason && e.reason.message ? e.reason.message : e.reason));
 });
 
 window.addEventListener('load', () => {
