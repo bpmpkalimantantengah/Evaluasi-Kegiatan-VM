@@ -92,9 +92,12 @@ exports.deleteTimKerja = async (req, res) => {
 
 exports.createKegiatan = async (req, res) => {
     try {
-        const { nama_kegiatan, narasumber_list, tgl_mulai, tgl_akhir, kode_unik, tim_kerja, tahun, tempat, penanggungjawab, status, created_by, tgl_import } = req.body;
+        let { nama_kegiatan, narasumber_list, tgl_mulai, tgl_akhir, kode_unik, tim_kerja, tahun, tempat, penanggungjawab, status, created_by, tgl_import } = req.body;
         if (!nama_kegiatan) return res.status(400).json({ error: 'Nama kegiatan wajib diisi' });
-        if (!kode_unik) return res.status(400).json({ error: 'Kode unik wajib diisi' });
+        
+        if (!kode_unik) {
+            kode_unik = require('crypto').randomBytes(3).toString('hex').toUpperCase();
+        }
 
         await db.query(
             `INSERT INTO kegiatan_meta (nama_kegiatan, kode_unik, narasumber_list, tgl_mulai, tgl_akhir, tim_kerja, tahun, tempat, penanggungjawab, status, created_by, tgl_import) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
