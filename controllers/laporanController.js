@@ -125,7 +125,7 @@ exports.generateLaporan = async (req, res) => {
     let penanggungJawab = '-';
 
     try {
-        const respKegiatan = await axios.get(`http://127.0.0.1:3000/api/evaluasi/kegiatan/semua`);
+        const respKegiatan = await axios.get(`http://127.0.0.1:4001/evaluasi/api/kegiatan/semua`);
         const allKeg = respKegiatan.data?.data || [];
         const keg = allKeg.find(k => k.nama_kegiatan === namaKegiatan);
         if (keg) {

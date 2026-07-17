@@ -89,11 +89,11 @@ input, button, select, textarea { font-family: inherit; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
 /* ── SIDEBAR ─────────────────────────────────────────────── */
-.sidebar { width:var(--sidebar-w); background:var(--gp); position:fixed; top:0; left:0; bottom:0; z-index:100; display:flex; flex-direction:column; transition:transform .3s; }
+.sidebar { width:var(--sidebar-w); background:var(--gp); position:fixed; top:0; left:0; bottom:0; z-index:1050; display:flex; flex-direction:column; transition:transform .3s; }
 .sidebar-head { height:64px; padding:0 20px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; gap:12px; background: #002244; box-sizing: border-box; }
 .sidebar-icon { width:38px; height:38px; background:var(--ga); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .sidebar-icon i { font-size:22px; color:var(--gp); }
-.sidebar-brand-name { color:#fff; font-size:13px; font-weight:800; letter-spacing:1px; line-height:1.2; }
+.sidebar-brand-name { color:#fff; font-size:13px; font-weight:800; letter-spacing:1px; line-height:1.2; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sidebar-brand-sub  { color:rgba(255,255,255,.4); font-size:9px; letter-spacing:.8px; margin-top:2px; }
 nav.sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
 .nav-section { font-size:9px; font-weight:700; color:rgba(255,255,255,.3); letter-spacing:1.2px; padding:12px 18px 4px; text-transform:uppercase; }
@@ -235,12 +235,26 @@ nav.sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
 .empty-state { text-align:center; padding:60px 20px; color:var(--text3); }
 .empty-state i { font-size:52px; margin-bottom:16px; display:block; opacity:.4; }
 .empty-state p { font-size:14px; }
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+.mobile-menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
 /* MOBILE OVERLAY & RESPONSIVENESS */
-.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(2px); }
+.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1040; backdrop-filter: blur(2px); }
 @media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
+  .sidebar { transform: translateX(-100%); z-index: 1050; }
   .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.2); }
-  .main-content { margin-left: 0; width: 100%; }
+  .main-content { margin-left: 0; width: 100%; position: relative; }
+  .mobile-menu-btn { display: flex !important; margin-right: 8px; }
   #btn-sidebar-toggle { display: flex !important; }
   #btn-sidebar-close { display: flex !important; }
   .form-input, .search-input, select { font-size: 16px !important; }
@@ -265,12 +279,12 @@ nav.sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
       <div style="display: flex; align-items: center; gap: 12px;">
         <div class="sidebar-icon"><i class="ti ti-chart-bar"></i></div>
         <div>
-          <div class="sidebar-brand-name">EVALUASI</div>
+          <div class="sidebar-brand-name"><%= typeof appName !== 'undefined' ? appName : 'EVALUASI' %></div>
           <div class="sidebar-brand-sub">BPMP KALTENG</div>
         </div>
       </div>
-      <button class="icon-btn" id="btn-sidebar-close" onclick="toggleSidebar(true)" style="display: none; color: rgba(255,255,255,0.7); border: none; background: transparent; cursor: pointer;">
-        <i class="ti ti-chevron-left" style="font-size: 24px;"></i>
+      <button class="mobile-menu-btn" id="btn-sidebar-close" onclick="toggleSidebar(true)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
       </button>
     </div>
     <nav class="sidebar-nav">
@@ -307,8 +321,8 @@ nav.sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
   <div class="main-content">
     <div class="topbar">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <button class="icon-btn" id="btn-sidebar-toggle" onclick="toggleSidebar()" style="display: none; background: transparent; border: none; color: #fff; cursor: pointer;">
-          <i class="ti ti-menu-2" style="font-size: 24px;"></i>
+        <button class="mobile-menu-btn" id="btn-sidebar-toggle" onclick="toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
       </div>
       <div class="topbar-actions">
@@ -926,7 +940,7 @@ const Ev = (() => {
     document.getElementById('modal-responden').classList.remove('hidden');
     
     try {
-        const res = await fetch("https://168-110-208-72.nip.io/api/evaluasi/responden/" + encodeURIComponent(nama));
+        const res = await fetch("/evaluasi/api/responden/" + encodeURIComponent(nama));
         const json = await res.json();
         if (json.success && json.data.length > 0) {
             listEl.innerHTML = '<ul style="list-style:none; padding:0; margin:0; text-align:left;">' + 

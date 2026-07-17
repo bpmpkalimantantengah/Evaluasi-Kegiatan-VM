@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config();
 
@@ -18,10 +20,38 @@ const PORT = process.env.PORT || 4001;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Middleware
-app.use(cors());
+// CORS — hanya izinkan dari domain GASPOL yang dikenal
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowed = [
+      undefined,             // server-to-server (no origin)
+      'http://localhost',
+      'http://127.0.0.1',
+      'http://168.110.208.72',
+      'https://168.110.208.72',
+      'https://168-110-208-72.nip.io',
+    ];
+    if (!origin || allowed.some(a => a && origin.startsWith(a))) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS: Origin tidak diizinkan — ' + origin));
+    }
+  },
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Percayai reverse proxy (Nginx/LB) agar IP client asli terbaca untuk rate limiter
+app.set('trust proxy', 1);
 
 // Rate Limiter
 const rateLimit = require('express-rate-limit');
@@ -86,10 +116,19 @@ app.use(async (req, res) => {
       console.error('SSO Database Error:', e.message); 
     }
   }
+
+  let appName = 'EVALUASI KEGIATAN';
+  try {
+    const [rows] = await db.execute('SELECT appName FROM Apps WHERE appId = ?', [appId]);
+    if (rows.length > 0) appName = rows[0].appName;
+  } catch(e) {
+    console.error('AppName Error:', e.message);
+  }
   
   res.render('index', {
     appUrl,
     appId,
+    appName,
     token,
     portalUrl: 'https://168-110-208-72.nip.io/portal/',
     ssoUser: ssoUserStr

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluasi Pelaksanaan Kegiatan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-light);
+            margin: 0;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 95%;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header-image {
+            width: calc(100% + 4rem);
+            margin: -2rem -2rem 2rem -2rem;
+            max-height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        h2 {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+        }
+        .rating-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: transparent;
+            padding: 0;
+            border: none;
+            margin-top: 0.5rem;
+        }
+        .rating-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--text-light);
+            background: rgba(255,255,255,0.05);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--glass-border);
+            transition: all 0.2s;
+        }
+        .rating-group label:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .rating-group input[type="radio"] {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin: 0;
+            margin-right: 1rem;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        button {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: var(--primary);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background: var(--primary-hover);
+        }
+        .hidden { display: none !important; }
+        .success-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .step-indicator {
+            text-align: left;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+        .progress-container {
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            height: 18px;
+            margin-bottom: 2.5rem;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #ec4899);
+            width: 0%;
+            border-radius: 20px;
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .progress-text {
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 18px;
+            white-space: nowrap;
+        }
+        .likert-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+            min-width: 550px;
+        }
+        .likert-table th, .likert-table td {
+            padding: 0.8rem;
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .likert-table th {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .likert-table td:first-child {
+            text-align: left;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            padding-right: 1rem;
+        }
+        .likert-table input[type="radio"] {
+            width: 1.1rem;
+            height: 1.1rem;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        .instruction-box {
+            background: rgba(79, 70, 229, 0.15);
+            border: 1px solid var(--primary);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #c7d2fe;
+        }
+        .instruction-box ul {
+            margin-top: 0.5rem;
+            margin-bottom: 0;
+            padding-left: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="formContainer">
+    <img src="/header.png" onerror="this.style.display='none'" class="header-image" style="width: calc(100% + 5rem); height: auto; margin: -2.5rem -2.5rem 1.5rem -2.5rem; border-radius: 20px 20px 0 0; display: block;" alt="Header">
+
+    <h1 id="namaKegiatanTitle">Memuat Kegiatan...</h1>
+    <div id="tanggalKegiatan" style="text-align:center; font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem;"></div>
+    
+    <div class="step-indicator" id="stepIndicator">Kemajuan Pengisian</div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar">
+            <span class="progress-text" id="progressText">0%</span>
+        </div>
+    </div>
+    
+    <h2 id="tipeEvalTitle">Formulir Evaluasi</h2>
+
+    <div class="instruction-box" id="instructionBox">
+        Bacalah instrumen ini secara seksama kemudian berilah penilaian secara obyektif dengan cara memilih salah satu dari lima skala penilaian sesuai dengan tingkat kepuasan Saudara.
+        <ul>
+            <li>5 : Sangat baik</li>
+            <li>4 : Baik</li>
+            <li>3 : Cukup baik</li>
+            <li>2 : Kurang baik</li>
+            <li>1 : Sangat kurang baik</li>
+        </ul>
+    </div>
+
+    <form id="evalForm">
+        <input type="hidden" id="kegiatan_id" name="kegiatan_id">
+
+        <!-- Global inputs, only asked in step 1 -->
+        <div id="globalFields">
+            <div class="form-group">
+                <label for="nama_peserta">Nama Anda (Opsional)</label>
+                <input type="text" id="nama_peserta" name="nama_peserta" placeholder="Masukkan identitas Anda...">
+            </div>
+        </div>
+
+        <div id="questionsContainer">
+            <!-- Questions injected here by JS -->
+        </div>
+
+        <div class="form-group" style="margin-top: 2rem;">
+            <label for="saran" style="color:#818cf8;">Saran & Masukan (Opsional)</label>
+            <textarea id="saran" name="saran" rows="3" placeholder="Tuliskan saran Anda khusus untuk evaluasi di halaman ini..."></textarea>
+        </div>
+
+        <button type="submit" id="btnSubmit">Selanjutnya</button>
+    </form>
+</div>
+
+<div class="container hidden" id="successContainer">
+    <div class="success-state">
+        <div class="success-icon">🎉</div>
+        <h1>Terima Kasih!</h1>
+        <p style="color: var(--text-muted); line-height: 1.6;">Seluruh evaluasi Anda telah berhasil disimpan.<br>Masukan Anda sangat berarti bagi kami.</p>
+    </div>
+</div>
+
+<script src="/js/evaluasi.js"></script>
+
+</body>
+</html>

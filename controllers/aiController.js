@@ -27,7 +27,7 @@ function getGenerativeModel() {
 // Helper: Fetch saran list from the DB or existing API
 async function _getSaranList(namaKegiatan, tipe, namaNarasumber) {
   try {
-    const url = "http://127.0.0.1:3000/api/evaluasi/rekap/" + encodeURIComponent(namaKegiatan);
+    const url = "http://127.0.0.1:4001/evaluasi/api/rekap/" + encodeURIComponent(namaKegiatan);
     const res = await axios.get(url);
     const json = res.data;
     if (!json.success || !json.data) return [];

@@ -5,11 +5,12 @@ const aiController = require('../controllers/aiController');
 const laporanController = require('../controllers/laporanController');
 const rekapController = require('../controllers/rekapController');
 const dbSSO = require('../config/db_sso');
+const evaluasiController = require('../controllers/evaluasiController');
 
 const ssoCache = new Map();
 const CACHE_TTL = 3 * 60 * 1000;
 
-const VM_API_BASE = 'http://127.0.0.1:3000/api/evaluasi';
+const VM_API_BASE = 'http://127.0.0.1:4001/evaluasi/api';
 axios.defaults.headers.common['x-api-key'] = process.env.API_KEY || 'gaspol_secret_key_2026';
 
 // Action Dispatcher to emulate GAS Code.js processAction
@@ -164,4 +165,25 @@ router.post('/action', async (req, res) => {
   }
 });
 
+
+// REST Endpoints
+router.get('/kegiatan/code/:kode', evaluasiController.resolveCode);
+router.get('/kegiatan/semua', evaluasiController.getSemuaKegiatan);
+router.post('/kegiatan', evaluasiController.createKegiatan);
+router.get('/kegiatan/:id', evaluasiController.getKegiatan);
+router.put('/kegiatan/:old_id', evaluasiController.updateKegiatan);
+router.delete('/kegiatan/:id', evaluasiController.deleteKegiatan);
+router.post('/submit', evaluasiController.submitEvaluasi);
+router.get('/rekap/:id', evaluasiController.getRekap);
+router.get('/responden/:id', evaluasiController.getResponden);
+
+router.get('/timkerja', evaluasiController.getTimKerja);
+router.post('/timkerja', evaluasiController.addTimKerja);
+router.put('/timkerja/:oldName', evaluasiController.editTimKerja);
+router.delete('/timkerja/:name', evaluasiController.deleteTimKerja);
+
+router.get('/instrumen', evaluasiController.getInstrumen);
+router.post('/instrumen', evaluasiController.saveInstrumen);
+
 module.exports = router;
+

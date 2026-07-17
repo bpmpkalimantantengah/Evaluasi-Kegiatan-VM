@@ -1,6 +1,6 @@
 const axios = require('axios');
 axios.defaults.headers.common['x-api-key'] = process.env.API_KEY || 'gaspol_secret_key_2026';
-const VM_API_BASE = 'http://127.0.0.1:3000/api/evaluasi';
+const VM_API_BASE = 'http://127.0.0.1:4001/evaluasi/api';
 
 function getKategori(avg) {
   if (avg >= 4.21) return 'Sangat Baik';
