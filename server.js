@@ -101,13 +101,15 @@ app.use(async (req, res) => {
 
   if (token) {
     try {
+      const appId = process.env.APP_ID || '';
       const [rows] = await db.execute(
-        `SELECT u.userId, u.username, u.fullName, u.role 
+        `SELECT u.userId, u.username, u.fullName, UPPER(IFNULL(a.appRole, u.role)) AS role 
          FROM Sessions s 
          JOIN Users u ON s.userId = u.userId 
+         LEFT JOIN AppAccess a ON u.userId = a.userId AND a.appId = ?
          WHERE s.token = ? AND s.isValid = 1 
          AND (s.expiresAt IS NULL OR s.expiresAt > NOW())`,
-        [token]
+        [appId, token]
       );
       if (rows.length > 0) {
         ssoUserStr = JSON.stringify(rows[0]);
